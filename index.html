@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Olimpo Especiarias — bolos, doces, pães caseiros e congelados com entrega no Campo Belo e região, Cachoeirinha/RS.">
+    <meta name="theme-color" content="#1C1512">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css" />
+    <title>Olimpo Especiarias — Delícias de Sabores</title>
+</head>
+
+<body>
+    <div class="aviso-topo" id="aviso-topo"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> <span id="aviso-texto"></span></div>
+
+    <header class="topo">
+        <a href="#inicio" class="marca">
+            <img src="assets/logo-olimpo.png" alt="Olimpo Especiarias" class="marca-logo">
+            <span class="marca-texto">
+                <strong>Olimpo</strong>
+                <small>Especiarias · Delícias de Sabores</small>
+            </span>
+        </a>
+        <button class="botao-carrinho" id="botao-carrinho" aria-label="Abrir carrinho">
+            <span class="botao-carrinho-icone">
+                <i class="fa-solid fa-basket-shopping" aria-hidden="true"></i>
+                <span class="carrinho-contador" id="carrinho-contador">0</span>
+            </span>
+            <span class="botao-carrinho-total" id="carrinho-total-topo">R$ 0,00</span>
+        </button>
+    </header>
+
+    <section class="hero" id="inicio">
+        <div class="hero-texto">
+            <span class="hero-tag" id="hero-tag"></span>
+            <h1 id="hero-titulo"></h1>
+            <p id="hero-subtitulo"></p>
+            <div class="hero-acoes">
+                <a href="#cardapio" class="btn btn-ouro"><i class="fa-solid fa-utensils" aria-hidden="true"></i> Ver cardápio</a>
+                <a href="#" class="btn btn-contorno" id="hero-whatsapp" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Falar com a Dani</a>
+            </div>
+            <ul class="hero-selos">
+                <li><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Entrega no Campo Belo e região</li>
+                <li><i class="fa-solid fa-house" aria-hidden="true"></i> Retirada no local</li>
+                <li><i class="fa-brands fa-pix" aria-hidden="true"></i> Pix, cartão ou dinheiro</li>
+            </ul>
+        </div>
+        <div class="hero-fotos" aria-hidden="true">
+            <img src="assets/produtos/bolo-maracuja.jpg" alt="" class="hero-foto f1">
+            <img src="assets/produtos/furacao-nutella.jpg" alt="" class="hero-foto f2">
+            <img src="assets/produtos/pao-de-leite.jpg" alt="" class="hero-foto f3">
+        </div>
+    </section>
+
+    <div class="loja-fechada" id="loja-fechada" hidden>
+        <i class="fa-solid fa-moon" aria-hidden="true"></i>
+        <div><strong>Hoje não estamos aceitando pedidos pelo site.</strong><br>Você pode olhar o cardápio e falar com a gente pelo WhatsApp.</div>
+    </div>
+
+    <nav class="barra-categorias" id="barra-categorias" aria-label="Categorias">
+        <div class="busca">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="busca" placeholder="Procurar: bolo, pão, Nutella..." aria-label="Procurar produto">
+        </div>
+        <div class="chips" id="chips"></div>
+    </nav>
+
+    <main id="cardapio">
+        <section class="secao-destaques" id="secao-destaques">
+            <h2 class="titulo-secao"><i class="fa-solid fa-star" aria-hidden="true"></i> Os mais pedidos</h2>
+            <div class="trilho" id="trilho-destaques"></div>
+        </section>
+        <div id="lista-categorias"></div>
+        <p class="sem-resultado" id="sem-resultado" hidden><i class="fa-regular fa-face-frown" aria-hidden="true"></i> Não encontramos nada com esse nome.</p>
+    </main>
+
+    <section class="secao-entrega" id="entrega">
+        <div class="entrega-cabecalho">
+            <i class="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+            <div>
+                <h2>Entregamos no Campo Belo e região</h2>
+                <p id="entrega-regra"></p>
+            </div>
+        </div>
+        <ul class="tabela-frete" id="tabela-frete"></ul>
+        <p class="entrega-obs">Seu bairro não está na lista? <a href="#" id="link-outro-bairro" target="_blank" rel="noopener">Chame no WhatsApp</a> que a gente combina.</p>
+    </section>
+
+    <section class="secao-sobre" id="sobre">
+        <img src="assets/logo-olimpo.png" alt="" class="sobre-logo">
+        <div>
+            <span class="hero-tag">Quem faz</span>
+            <h2>Olimpo — Delícias de Sabores</h2>
+            <p id="sobre-texto"></p>
+            <p class="sobre-endereco"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span id="sobre-endereco"></span></p>
+        </div>
+    </section>
+
+    <footer class="rodape">
+        <p id="rodape-texto"></p>
+        <p class="rodape-credito">Site desenvolvido por <a href="#" id="link-tf" target="_blank" rel="noopener">TF Solutions</a></p>
+    </footer>
+
+    <!-- Barra inferior (celular) -->
+    <button class="barra-carrinho" id="barra-carrinho" hidden>
+        <span><i class="fa-solid fa-basket-shopping" aria-hidden="true"></i> <span id="barra-qtd">0 itens</span></span>
+        <strong>Ver carrinho · <span id="barra-total">R$ 0,00</span></strong>
+    </button>
+
+    <!-- Modal de produto -->
+    <div class="fundo-escuro" id="fundo-produto"></div>
+    <div class="modal-produto" id="modal-produto" role="dialog" aria-modal="true" aria-labelledby="mp-nome">
+        <button class="fechar" id="mp-fechar" aria-label="Fechar">&times;</button>
+        <img id="mp-foto" src="" alt="">
+        <div class="mp-corpo">
+            <div class="mp-tags" id="mp-tags"></div>
+            <h2 id="mp-nome"></h2>
+            <p id="mp-descricao"></p>
+            <div class="mp-grupo" id="mp-grupo-tamanho" hidden>
+                <span class="mp-rotulo">Escolha o tamanho</span>
+                <div class="opcoes" id="mp-tamanhos"></div>
+            </div>
+            <div class="mp-grupo" id="mp-grupo-opcao" hidden>
+                <span class="mp-rotulo" id="mp-rotulo-opcao">Escolha uma opção</span>
+                <div class="opcoes" id="mp-opcoes"></div>
+            </div>
+            <div class="mp-rodape">
+                <div class="quantidade">
+                    <button type="button" id="mp-menos" aria-label="Diminuir">−</button>
+                    <span id="mp-qtd">1</span>
+                    <button type="button" id="mp-mais" aria-label="Aumentar">+</button>
+                </div>
+                <button class="btn btn-ouro btn-largo" id="mp-adicionar">Adicionar <span id="mp-preco"></span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carrinho -->
+    <div class="fundo-escuro" id="fundo-carrinho"></div>
+    <aside class="carrinho" id="carrinho" aria-label="Carrinho">
+        <div class="carrinho-topo">
+            <h3><i class="fa-solid fa-basket-shopping" aria-hidden="true"></i> Meu pedido</h3>
+            <button class="fechar" id="carrinho-fechar" aria-label="Fechar carrinho">&times;</button>
+        </div>
+        <ol class="etapas" id="etapas">
+            <li data-etapa="1" class="ativa"><span>1</span> Itens</li>
+            <li data-etapa="2"><span>2</span> Entrega</li>
+            <li data-etapa="3"><span>3</span> Pagamento</li>
+        </ol>
+
+        <div class="carrinho-conteudo" id="carrinho-conteudo">
+            <!-- Etapa 1 -->
+            <section class="etapa" data-etapa="1">
+                <div id="carrinho-itens"></div>
+                <div class="campo">
+                    <label for="observacoes">Alguma observação? <small>(opcional)</small></label>
+                    <textarea id="observacoes" rows="2" placeholder="Ex: escrever 'Feliz aniversário', sem coco..."></textarea>
+                </div>
+                <div class="cupom">
+                    <input type="text" id="cupom" placeholder="Tem cupom? Digite aqui" aria-label="Cupom de desconto">
+                    <button type="button" id="cupom-aplicar">Usar</button>
+                </div>
+                <p class="cupom-msg" id="cupom-msg"></p>
+            </section>
+
+            <!-- Etapa 2 -->
+            <section class="etapa" data-etapa="2" hidden>
+                <h4>Como você quer receber?</h4>
+                <div class="alternar" role="tablist">
+                    <button type="button" class="alternar-btn ativo" data-tipo="entrega"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Entrega</button>
+                    <button type="button" class="alternar-btn" data-tipo="retirada"><i class="fa-solid fa-house" aria-hidden="true"></i> Vou buscar</button>
+                </div>
+                <div id="campos-entrega">
+                    <div class="campo">
+                        <label for="bairro">Bairro</label>
+                        <select id="bairro"></select>
+                        <p class="dica-frete" id="dica-frete"></p>
+                    </div>
+                    <div class="campo">
+                        <label for="endereco">Rua e número</label>
+                        <input type="text" id="endereco" placeholder="Ex: Rua das Flores, 120" autocomplete="street-address">
+                    </div>
+                    <div class="campo">
+                        <label for="referencia">Complemento / ponto de referência <small>(opcional)</small></label>
+                        <input type="text" id="referencia" placeholder="Ex: casa dos fundos, perto do mercado">
+                    </div>
+                </div>
+                <div id="campos-retirada" hidden>
+                    <p class="info-retirada"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span id="info-retirada"></span></p>
+                    <div class="linha-2">
+                        <div class="campo">
+                            <label for="retirada-data">Dia</label>
+                            <input type="date" id="retirada-data">
+                        </div>
+                        <div class="campo">
+                            <label for="retirada-hora">Horário</label>
+                            <select id="retirada-hora"></select>
+                        </div>
+                    </div>
+                </div>
+                <h4>Seus dados</h4>
+                <div class="campo">
+                    <label for="cliente-nome">Seu nome</label>
+                    <input type="text" id="cliente-nome" placeholder="Nome e sobrenome" autocomplete="name">
+                </div>
+                <div class="campo">
+                    <label for="cliente-telefone">Seu WhatsApp</label>
+                    <input type="tel" id="cliente-telefone" placeholder="(51) 99999-9999" maxlength="15" autocomplete="tel">
+                </div>
+            </section>
+
+            <!-- Etapa 3 -->
+            <section class="etapa" data-etapa="3" hidden>
+                <h4>Como vai pagar?</h4>
+                <div class="pagamentos">
+                    <label class="pagamento selecionado"><input type="radio" name="pagamento" value="Pix" checked> <i class="fa-brands fa-pix" aria-hidden="true"></i> Pix</label>
+                    <label class="pagamento"><input type="radio" name="pagamento" value="Cartão (maquininha na entrega)"> <i class="fa-regular fa-credit-card" aria-hidden="true"></i> Cartão <small>(na entrega)</small></label>
+                    <label class="pagamento"><input type="radio" name="pagamento" value="Dinheiro"> <i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i> Dinheiro</label>
+                </div>
+                <div class="campo" id="campo-troco" hidden>
+                    <label for="troco">Troco para quanto? <small>(deixe vazio se não precisar)</small></label>
+                    <input type="number" id="troco" placeholder="Ex: 50" min="0" inputmode="decimal">
+                </div>
+                <div class="resumo" id="resumo"></div>
+            </section>
+
+            <!-- Sucesso -->
+            <section class="etapa sucesso" id="etapa-sucesso" hidden>
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                <h4>Pedido enviado!</h4>
+                <p>Abrimos o WhatsApp com o seu pedido. <strong>Toque em enviar</strong> na conversa para a Dani receber.</p>
+                <p>Número do pedido:</p>
+                <div class="codigo-pedido" id="codigo-pedido"></div>
+                <button type="button" class="btn btn-ouro btn-largo" id="novo-pedido">Fazer outro pedido</button>
+            </section>
+        </div>
+
+        <div class="carrinho-totais" id="carrinho-totais">
+            <div class="linha-total"><span>Subtotal</span><span id="t-subtotal">R$ 0,00</span></div>
+            <div class="linha-total" id="linha-frete" hidden><span>Entrega</span><span id="t-frete">R$ 0,00</span></div>
+            <div class="linha-total desconto" id="linha-desconto" hidden><span>Desconto</span><span id="t-desconto">- R$ 0,00</span></div>
+            <div class="linha-total total"><span>Total</span><span id="t-total">R$ 0,00</span></div>
+        </div>
+        <div class="carrinho-botoes" id="carrinho-botoes">
+            <button type="button" class="btn btn-contorno-escuro" id="voltar" hidden><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Voltar</button>
+            <button type="button" class="btn btn-ouro btn-largo" id="avancar">Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-whats btn-largo" id="enviar" hidden><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Enviar pedido</button>
+        </div>
+    </aside>
+
+    <div class="aviso-flutuante" id="aviso-flutuante" role="status" aria-live="polite"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="dados.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

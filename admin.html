@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#1C1512">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+    <title>Painel da Olimpo</title>
+</head>
+
+<body>
+    <!-- ═══ LOGIN ═══ -->
+    <div id="tela-login" class="tela-login">
+        <div class="login-caixa">
+            <img src="assets/logo-olimpo.png" alt="Olimpo" class="login-logo">
+            <h1>Painel da Olimpo</h1>
+            <p>Bem-vinda! Digite sua senha para entrar.</p>
+            <div class="campo" id="campo-email">
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" autocomplete="username">
+            </div>
+            <div class="campo">
+                <label for="login-senha">Senha</label>
+                <input type="password" id="login-senha" autocomplete="current-password" inputmode="numeric">
+            </div>
+            <p class="login-erro" id="login-erro" hidden>Senha incorreta. Tente de novo.</p>
+            <button class="btn btn-ouro btn-grande" id="login-entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+            <p class="login-dica" id="login-dica" hidden>Demonstração: a senha é <strong>1234</strong></p>
+            <a class="login-tf" href="#" id="login-tf" target="_blank" rel="noopener"><img src="assets/tf-solutions-logo.jpg" alt=""> Sistema TF Solutions</a>
+        </div>
+    </div>
+
+    <!-- ═══ APLICATIVO ═══ -->
+    <div id="app" class="app" hidden>
+        <header class="topo">
+            <div class="topo-marca">
+                <img src="assets/logo-olimpo.png" alt="">
+                <div>
+                    <strong>Olimpo</strong>
+                    <small id="topo-data"></small>
+                </div>
+            </div>
+            <div class="topo-acoes">
+                <a href="index.html" target="_blank" class="topo-btn" title="Ver o site"><i class="fa-solid fa-store"></i><span>Ver site</span></a>
+                <button class="topo-btn" id="sair" title="Sair"><i class="fa-solid fa-right-from-bracket"></i><span>Sair</span></button>
+            </div>
+        </header>
+
+        <nav class="menu" id="menu">
+            <button data-pagina="inicio" class="ativo"><i class="fa-solid fa-house"></i><span>Início</span></button>
+            <button data-pagina="vender"><i class="fa-solid fa-cash-register"></i><span>Vender</span></button>
+            <button data-pagina="pedidos"><i class="fa-solid fa-bell"></i><span>Pedidos</span><b class="menu-badge" id="badge-pedidos" hidden>0</b></button>
+            <button data-pagina="estoque"><i class="fa-solid fa-boxes-stacked"></i><span>Estoque</span></button>
+            <button data-pagina="caixa"><i class="fa-solid fa-wallet"></i><span>Caixa</span></button>
+            <button data-pagina="relatorio" class="so-desktop"><i class="fa-solid fa-chart-column"></i><span>Relatório</span></button>
+            <button data-pagina="ajustes" class="so-desktop"><i class="fa-solid fa-gear"></i><span>Ajustes</span></button>
+            <button data-pagina="mais" class="so-celular"><i class="fa-solid fa-ellipsis"></i><span>Mais</span></button>
+        </nav>
+
+        <main class="conteudo">
+            <!-- INÍCIO -->
+            <section class="pagina ativa" id="pg-inicio">
+                <h1 class="saudacao" id="saudacao"></h1>
+                <p class="subtitulo">Resumo de hoje</p>
+                <div class="cartoes-numeros">
+                    <div class="cartao-numero entrada"><i class="fa-solid fa-arrow-down"></i><span>Entrou hoje</span><strong id="hoje-entradas">R$ 0,00</strong></div>
+                    <div class="cartao-numero saida"><i class="fa-solid fa-arrow-up"></i><span>Saiu hoje</span><strong id="hoje-saidas">R$ 0,00</strong></div>
+                    <div class="cartao-numero saldo"><i class="fa-solid fa-piggy-bank"></i><span>Sobrou hoje</span><strong id="hoje-saldo">R$ 0,00</strong></div>
+                </div>
+                <p class="linha-mes" id="linha-mes"></p>
+
+                <div class="atalhos">
+                    <button class="atalho" data-ir="vender"><i class="fa-solid fa-cash-register"></i><span>Vender no balcão</span></button>
+                    <button class="atalho" data-ir="pedidos"><i class="fa-solid fa-bell"></i><span>Pedidos do site</span><b id="atalho-pedidos"></b></button>
+                    <button class="atalho" id="atalho-gasto"><i class="fa-solid fa-receipt"></i><span>Anotar um gasto</span></button>
+                    <button class="atalho" data-ir="estoque"><i class="fa-solid fa-boxes-stacked"></i><span>Atualizar estoque</span></button>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-triangle-exclamation"></i> Precisa produzir</h2>
+                    <div id="lista-produzir"></div>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> Movimentos de hoje</h2>
+                    <div id="lista-hoje"></div>
+                </div>
+            </section>
+
+            <!-- VENDER -->
+            <section class="pagina" id="pg-vender">
+                <h1 class="titulo-pagina"><i class="fa-solid fa-cash-register"></i> Vender no balcão</h1>
+                <p class="subtitulo">Toque nos produtos que a cliente levou.</p>
+                <div class="vender-layout">
+                    <div>
+                        <div class="busca"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="vender-busca" placeholder="Procurar produto"></div>
+                        <div class="abas" id="cat-vender"></div>
+                        <div class="grade-vender" id="grade-vender"></div>
+                    </div>
+                    <aside class="cesta" id="cesta">
+                        <h2><i class="fa-solid fa-basket-shopping"></i> Esta venda</h2>
+                        <div id="cesta-itens"></div>
+                        <div class="cesta-total"><span>Total</span><strong id="cesta-total">R$ 0,00</strong></div>
+                        <p class="rotulo">Como pagou?</p>
+                        <div class="botoes-escolha" id="cesta-pagamento">
+                            <button data-valor="Pix" class="ativo"><i class="fa-brands fa-pix"></i> Pix</button>
+                            <button data-valor="Dinheiro"><i class="fa-solid fa-money-bill-wave"></i> Dinheiro</button>
+                            <button data-valor="Cartão"><i class="fa-regular fa-credit-card"></i> Cartão</button>
+                        </div>
+                        <div class="campo" id="cesta-troco-campo" hidden>
+                            <label for="cesta-recebido">Quanto a cliente deu? (R$)</label>
+                            <input type="number" id="cesta-recebido" inputmode="decimal" min="0" step="0.01">
+                            <p class="troco" id="cesta-troco"></p>
+                        </div>
+                        <div class="campo">
+                            <label for="cesta-cliente">Nome da cliente <small>(opcional)</small></label>
+                            <input type="text" id="cesta-cliente">
+                        </div>
+                        <button class="btn btn-verde btn-grande" id="cesta-concluir"><i class="fa-solid fa-check"></i> Concluir venda</button>
+                        <button class="btn btn-claro" id="cesta-limpar"><i class="fa-solid fa-eraser"></i> Limpar</button>
+                    </aside>
+                </div>
+                <button class="barra-cesta" id="barra-cesta" hidden><span id="barra-cesta-qtd"></span><strong>Fechar venda · <span id="barra-cesta-total"></span></strong></button>
+            </section>
+
+            <!-- PEDIDOS -->
+            <section class="pagina" id="pg-pedidos">
+                <h1 class="titulo-pagina"><i class="fa-solid fa-bell"></i> Pedidos do site</h1>
+                <p class="subtitulo">Pedidos que as clientes fizeram pelo site. Aceite, entregue e o caixa e o estoque se atualizam sozinhos.</p>
+                <div class="abas" id="abas-pedidos">
+                    <button data-status="novo" class="ativo">Novos <b id="qtd-novo"></b></button>
+                    <button data-status="confirmado">Fazendo <b id="qtd-confirmado"></b></button>
+                    <button data-status="entregue">Entregues</button>
+                    <button data-status="cancelado">Cancelados</button>
+                </div>
+                <div id="lista-pedidos"></div>
+            </section>
+
+            <!-- ESTOQUE -->
+            <section class="pagina" id="pg-estoque">
+                <div class="titulo-com-botao">
+                    <h1 class="titulo-pagina"><i class="fa-solid fa-boxes-stacked"></i> Produtos e estoque</h1>
+                    <button class="btn btn-ouro" id="novo-produto"><i class="fa-solid fa-plus"></i> Novo produto</button>
+                </div>
+                <p class="subtitulo">Use <b>+</b> quando produzir e <b>−</b> quando sair. Desligue "No site" para esconder um produto.</p>
+                <div class="busca"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="estoque-busca" placeholder="Procurar produto"></div>
+                <div class="abas" id="filtro-estoque">
+                    <button data-filtro="todos" class="ativo">Todos</button>
+                    <button data-filtro="baixo">Acabando</button>
+                    <button data-filtro="fora">Fora do site</button>
+                </div>
+                <div id="lista-estoque"></div>
+            </section>
+
+            <!-- CAIXA -->
+            <section class="pagina" id="pg-caixa">
+                <h1 class="titulo-pagina"><i class="fa-solid fa-wallet"></i> Caixa: entradas e saídas</h1>
+                <div class="navegar-mes">
+                    <button id="caixa-mes-ant" aria-label="Mês anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                    <strong id="caixa-mes-nome"></strong>
+                    <button id="caixa-mes-prox" aria-label="Próximo mês"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="cartoes-numeros">
+                    <div class="cartao-numero entrada"><i class="fa-solid fa-arrow-down"></i><span>Entradas</span><strong id="caixa-entradas"></strong></div>
+                    <div class="cartao-numero saida"><i class="fa-solid fa-arrow-up"></i><span>Saídas</span><strong id="caixa-saidas"></strong></div>
+                    <div class="cartao-numero saldo"><i class="fa-solid fa-piggy-bank"></i><span>Sobrou</span><strong id="caixa-saldo"></strong></div>
+                </div>
+                <div class="botoes-duplos">
+                    <button class="btn btn-verde btn-grande" id="nova-entrada"><i class="fa-solid fa-plus"></i> Anotar entrada</button>
+                    <button class="btn btn-vermelho btn-grande" id="nova-saida"><i class="fa-solid fa-minus"></i> Anotar gasto</button>
+                </div>
+                <div class="abas" id="filtro-caixa">
+                    <button data-filtro="todos" class="ativo">Tudo</button>
+                    <button data-filtro="entrada">Só entradas</button>
+                    <button data-filtro="saida">Só gastos</button>
+                </div>
+                <div id="lista-caixa"></div>
+            </section>
+
+            <!-- RELATÓRIO -->
+            <section class="pagina" id="pg-relatorio">
+                <h1 class="titulo-pagina"><i class="fa-solid fa-chart-column"></i> Relatório do mês</h1>
+                <div class="navegar-mes">
+                    <button id="rel-mes-ant" aria-label="Mês anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                    <strong id="rel-mes-nome"></strong>
+                    <button id="rel-mes-prox" aria-label="Próximo mês"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+                <div class="cartoes-numeros">
+                    <div class="cartao-numero entrada"><i class="fa-solid fa-arrow-down"></i><span>Vendeu</span><strong id="rel-entradas"></strong></div>
+                    <div class="cartao-numero saida"><i class="fa-solid fa-arrow-up"></i><span>Gastou</span><strong id="rel-saidas"></strong></div>
+                    <div class="cartao-numero saldo"><i class="fa-solid fa-piggy-bank"></i><span>Lucro</span><strong id="rel-lucro"></strong></div>
+                </div>
+                <p class="linha-mes" id="rel-frase"></p>
+                <div class="botoes-duplos">
+                    <button class="btn btn-whats" id="rel-whats"><i class="fa-brands fa-whatsapp"></i> Mandar resumo no WhatsApp</button>
+                    <button class="btn btn-claro" id="rel-imprimir"><i class="fa-solid fa-print"></i> Imprimir / salvar PDF</button>
+                </div>
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-chart-column"></i> Entradas e gastos por dia</h2>
+                    <div class="legenda"><span class="l-ent"></span> Entradas <span class="l-sai"></span> Gastos</div>
+                    <div class="grafico" id="rel-grafico"></div>
+                </div>
+                <div class="duas-colunas">
+                    <div class="bloco">
+                        <h2><i class="fa-solid fa-trophy"></i> Mais vendidos</h2>
+                        <div id="rel-top"></div>
+                    </div>
+                    <div class="bloco">
+                        <h2><i class="fa-solid fa-receipt"></i> Para onde foi o dinheiro</h2>
+                        <div id="rel-gastos"></div>
+                    </div>
+                </div>
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-credit-card"></i> Como as clientes pagaram</h2>
+                    <div id="rel-pagamentos"></div>
+                </div>
+            </section>
+
+            <!-- AJUSTES -->
+            <section class="pagina" id="pg-ajustes">
+                <h1 class="titulo-pagina"><i class="fa-solid fa-gear"></i> Ajustes da loja</h1>
+
+                <div class="bloco">
+                    <label class="interruptor grande">
+                        <input type="checkbox" id="aj-aberta">
+                        <span class="trilha"></span>
+                        <span><strong>Aceitando pedidos pelo site</strong><small>Desligue nos dias em que não for atender.</small></span>
+                    </label>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-store"></i> Informações da loja</h2>
+                    <div class="campo"><label for="aj-nome">Nome da loja</label><input type="text" id="aj-nome"></div>
+                    <div class="campo"><label for="aj-dona">Seu nome (aparece no botão "Falar com...")</label><input type="text" id="aj-dona"></div>
+                    <div class="campo"><label for="aj-whats">WhatsApp que recebe os pedidos <small>(com 55 e DDD, só números)</small></label><input type="tel" id="aj-whats" placeholder="5551999999999"></div>
+                    <div class="campo"><label for="aj-endereco">Endereço para retirada</label><input type="text" id="aj-endereco"></div>
+                    <div class="campo"><label for="aj-aviso">Aviso no topo do site <small>(deixe vazio para esconder)</small></label><input type="text" id="aj-aviso"></div>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-motorcycle"></i> Entrega e frete</h2>
+                    <label class="interruptor"><input type="checkbox" id="aj-entrega"><span class="trilha"></span><span><strong>Fazer entregas</strong></span></label>
+                    <label class="interruptor"><input type="checkbox" id="aj-retirada"><span class="trilha"></span><span><strong>Cliente pode buscar</strong></span></label>
+                    <div class="linha-2">
+                        <div class="campo"><label for="aj-minimo">Pedido mínimo para entrega (R$)</label><input type="number" id="aj-minimo" min="0" step="1" inputmode="decimal"></div>
+                        <div class="campo"><label for="aj-gratis">Entrega grátis acima de (R$) <small>(0 = nunca)</small></label><input type="number" id="aj-gratis" min="0" step="1" inputmode="decimal"></div>
+                    </div>
+                    <p class="rotulo">Valor da entrega por bairro <small>(coloque 0 para grátis)</small></p>
+                    <div id="aj-fretes"></div>
+                    <button class="btn btn-claro" id="aj-add-bairro"><i class="fa-solid fa-plus"></i> Adicionar bairro</button>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-clock"></i> Horário de retirada</h2>
+                    <p class="rotulo">Dias em que abre</p>
+                    <div class="dias" id="aj-dias"></div>
+                    <div class="linha-2">
+                        <div class="campo"><label for="aj-hora-ini">Abre às</label><input type="time" id="aj-hora-ini"></div>
+                        <div class="campo"><label for="aj-hora-fim">Fecha às</label><input type="time" id="aj-hora-fim"></div>
+                    </div>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-ticket"></i> Cupons de desconto</h2>
+                    <div id="aj-cupons"></div>
+                    <button class="btn btn-claro" id="aj-add-cupom"><i class="fa-solid fa-plus"></i> Criar cupom</button>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-solid fa-pen"></i> Textos do site</h2>
+                    <div class="campo"><label for="aj-titulo">Título principal</label><input type="text" id="aj-titulo"></div>
+                    <div class="campo"><label for="aj-subtitulo">Frase abaixo do título</label><input type="text" id="aj-subtitulo"></div>
+                    <div class="campo"><label for="aj-sobre">Sobre a Olimpo</label><textarea id="aj-sobre" rows="4"></textarea></div>
+                </div>
+
+                <button class="btn btn-ouro btn-grande salvar-fixo" id="aj-salvar"><i class="fa-solid fa-floppy-disk"></i> Salvar ajustes</button>
+
+                <div class="bloco bloco-ajuda">
+                    <h2><i class="fa-solid fa-circle-question"></i> Precisa de ajuda?</h2>
+                    <p>Qualquer dúvida para usar o painel, chame o suporte da TF Solutions.</p>
+                    <a class="btn btn-whats" id="aj-suporte" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Falar com o suporte</a>
+                    <button class="btn btn-claro" id="aj-resetar" hidden><i class="fa-solid fa-rotate-left"></i> Voltar aos dados de demonstração</button>
+                </div>
+            </section>
+
+            <!-- MAIS (celular) -->
+            <section class="pagina" id="pg-mais">
+                <h1 class="titulo-pagina">Mais opções</h1>
+                <div class="atalhos">
+                    <button class="atalho" data-ir="relatorio"><i class="fa-solid fa-chart-column"></i><span>Relatório do mês</span></button>
+                    <button class="atalho" data-ir="ajustes"><i class="fa-solid fa-gear"></i><span>Ajustes da loja</span></button>
+                    <a class="atalho" href="index.html" target="_blank"><i class="fa-solid fa-store"></i><span>Ver o site</span></a>
+                    <button class="atalho" id="mais-sair"><i class="fa-solid fa-right-from-bracket"></i><span>Sair</span></button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ═══ JANELAS ═══ -->
+    <div class="janela-fundo" id="janela-fundo"></div>
+
+    <!-- Produto -->
+    <div class="janela" id="jn-produto" role="dialog" aria-modal="true">
+        <button class="janela-fechar" data-fechar aria-label="Fechar">&times;</button>
+        <h2 id="jp-titulo">Produto</h2>
+        <div class="foto-produto">
+            <img id="jp-foto-previa" src="" alt="">
+            <label class="btn btn-claro"><i class="fa-solid fa-camera"></i> Trocar foto<input type="file" id="jp-foto" accept="image/*" hidden></label>
+        </div>
+        <div class="campo"><label for="jp-nome">Nome *</label><input type="text" id="jp-nome"></div>
+        <div class="linha-2">
+            <div class="campo"><label for="jp-preco">Preço (R$) *</label><input type="number" id="jp-preco" min="0" step="0.5" inputmode="decimal"></div>
+            <div class="campo"><label for="jp-categoria">Categoria</label><select id="jp-categoria"></select></div>
+        </div>
+        <div class="campo"><label for="jp-descricao">Descrição</label><textarea id="jp-descricao" rows="2"></textarea></div>
+        <div class="linha-2">
+            <div class="campo"><label for="jp-estoque">Quantos tem agora?</label><input type="number" id="jp-estoque" min="0" step="1" inputmode="numeric" placeholder="Vazio = não controlar"></div>
+            <div class="campo"><label for="jp-minimo">Avisar quando ficar com</label><input type="number" id="jp-minimo" min="0" step="1" inputmode="numeric"></div>
+        </div>
+        <details class="mais-opcoes">
+            <summary>Sabores, tamanhos e outras opções</summary>
+            <div class="campo"><label for="jp-sabores">Sabores / recheios <small>(um por linha)</small></label><textarea id="jp-sabores" rows="3" placeholder="Morango com ninho&#10;Prestígio"></textarea></div>
+            <div class="campo"><label for="jp-tamanhos">Tamanhos com preço diferente <small>(um por linha: nome | preço)</small></label><textarea id="jp-tamanhos" rows="2" placeholder="450g | 20&#10;790g | 26,50"></textarea></div>
+            <label class="interruptor"><input type="checkbox" id="jp-encomenda"><span class="trilha"></span><span><strong>Só sob encomenda</strong></span></label>
+            <div class="campo" id="jp-prazo-campo" hidden><label for="jp-prazo">Prazo (dias)</label><input type="number" id="jp-prazo" min="0" inputmode="numeric"></div>
+            <label class="interruptor"><input type="checkbox" id="jp-destaque"><span class="trilha"></span><span><strong>Mostrar em "Os mais pedidos"</strong></span></label>
+        </details>
+        <label class="interruptor"><input type="checkbox" id="jp-ativo"><span class="trilha"></span><span><strong>Aparece no site</strong></span></label>
+        <div class="janela-botoes">
+            <button class="btn btn-claro btn-perigo" id="jp-excluir"><i class="fa-solid fa-trash"></i> Apagar</button>
+            <button class="btn btn-ouro btn-grande" id="jp-salvar"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+        </div>
+    </div>
+
+    <!-- Movimento de caixa -->
+    <div class="janela" id="jn-movimento" role="dialog" aria-modal="true">
+        <button class="janela-fechar" data-fechar aria-label="Fechar">&times;</button>
+        <h2 id="jm-titulo">Anotar gasto</h2>
+        <div class="campo"><label for="jm-valor">Valor (R$)</label><input type="number" id="jm-valor" class="valor-grande" inputmode="decimal" min="0" step="0.01" placeholder="0,00"></div>
+        <p class="rotulo">Com o quê?</p>
+        <div class="botoes-escolha quebra" id="jm-categorias"></div>
+        <div class="campo"><label for="jm-descricao">Anotação <small>(opcional)</small></label><input type="text" id="jm-descricao" placeholder="Ex: farinha e ovos no atacado"></div>
+        <div class="linha-2">
+            <div class="campo"><label for="jm-data">Dia</label><input type="date" id="jm-data"></div>
+            <div class="campo"><label for="jm-pagamento">Pago com</label><select id="jm-pagamento"><option>Pix</option><option>Dinheiro</option><option>Cartão</option></select></div>
+        </div>
+        <div class="janela-botoes">
+            <button class="btn btn-ouro btn-grande" id="jm-salvar"><i class="fa-solid fa-check"></i> Salvar</button>
+        </div>
+    </div>
+
+    <!-- Escolher opção no balcão -->
+    <div class="janela" id="jn-opcao" role="dialog" aria-modal="true">
+        <button class="janela-fechar" data-fechar aria-label="Fechar">&times;</button>
+        <h2 id="jo-titulo"></h2>
+        <div id="jo-conteudo"></div>
+    </div>
+
+    <!-- Cupom -->
+    <div class="janela" id="jn-cupom" role="dialog" aria-modal="true">
+        <button class="janela-fechar" data-fechar aria-label="Fechar">&times;</button>
+        <h2>Cupom de desconto</h2>
+        <div class="campo"><label for="jc-codigo">Palavra do cupom</label><input type="text" id="jc-codigo" placeholder="Ex: NATAL10" style="text-transform:uppercase"></div>
+        <div class="linha-2">
+            <div class="campo"><label for="jc-tipo">Tipo</label><select id="jc-tipo"><option value="percentual">% de desconto</option><option value="fixo">R$ de desconto</option></select></div>
+            <div class="campo"><label for="jc-valor">Quanto</label><input type="number" id="jc-valor" min="0" inputmode="decimal"></div>
+        </div>
+        <div class="linha-2">
+            <div class="campo"><label for="jc-minimo">Pedido mínimo (R$)</label><input type="number" id="jc-minimo" min="0" inputmode="decimal"></div>
+            <div class="campo"><label for="jc-validade">Vale até <small>(opcional)</small></label><input type="date" id="jc-validade"></div>
+        </div>
+        <div class="janela-botoes">
+            <button class="btn btn-claro btn-perigo" id="jc-excluir"><i class="fa-solid fa-trash"></i> Apagar</button>
+            <button class="btn btn-ouro btn-grande" id="jc-salvar"><i class="fa-solid fa-check"></i> Salvar</button>
+        </div>
+    </div>
+
+    <!-- Confirmação -->
+    <div class="janela janela-pequena" id="jn-confirmar" role="alertdialog" aria-modal="true">
+        <h2 id="jx-titulo">Tem certeza?</h2>
+        <p id="jx-texto"></p>
+        <div class="janela-botoes">
+            <button class="btn btn-claro" id="jx-nao">Não</button>
+            <button class="btn btn-vermelho btn-grande" id="jx-sim">Sim</button>
+        </div>
+    </div>
+
+    <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+    <div id="area-impressao" class="area-impressao"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="dados.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>
