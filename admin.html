@@ -58,6 +58,7 @@
             <button data-pagina="vender"><i class="fa-solid fa-cash-register"></i><span>Vender</span></button>
             <button data-pagina="pedidos"><i class="fa-solid fa-bell"></i><span>Pedidos</span><b class="menu-badge" id="badge-pedidos" hidden>0</b></button>
             <button data-pagina="estoque"><i class="fa-solid fa-boxes-stacked"></i><span>Estoque</span></button>
+            <button data-pagina="post" class="so-desktop"><i class="fa-solid fa-camera-retro"></i><span>Post do dia</span></button>
             <button data-pagina="caixa"><i class="fa-solid fa-wallet"></i><span>Caixa</span></button>
             <button data-pagina="relatorio" class="so-desktop"><i class="fa-solid fa-chart-column"></i><span>Relatório</span></button>
             <button data-pagina="ajustes" class="so-desktop"><i class="fa-solid fa-gear"></i><span>Ajustes</span></button>
@@ -68,6 +69,11 @@
             <!-- INÍCIO -->
             <section class="pagina ativa" id="pg-inicio">
                 <h1 class="saudacao" id="saudacao"></h1>
+                <button class="chamada-post" data-ir="post">
+                    <i class="fa-solid fa-camera-retro"></i>
+                    <span><strong>Post do dia</strong><small>Marque o que tem hoje e a imagem para os grupos fica pronta sozinha.</small></span>
+                    <i class="fa-solid fa-chevron-right seta"></i>
+                </button>
                 <p class="subtitulo">Resumo de hoje</p>
                 <div class="cartoes-numeros">
                     <div class="cartao-numero entrada"><i class="fa-solid fa-arrow-down"></i><span>Entrou hoje</span><strong id="hoje-entradas">R$ 0,00</strong></div>
@@ -157,6 +163,67 @@
                     <button data-filtro="fora">Fora do site</button>
                 </div>
                 <div id="lista-estoque"></div>
+            </section>
+
+            <!-- POST DO DIA -->
+            <section class="pagina" id="pg-post">
+                <h1 class="titulo-pagina"><i class="fa-solid fa-camera-retro"></i> Post do dia</h1>
+                <p class="subtitulo">Marque o que tem hoje. A imagem e o texto para os grupos ficam prontos sozinhos.</p>
+
+                <div class="post-layout">
+                    <div class="post-coluna">
+                        <div class="bloco">
+                            <h2><span class="post-passo">1</span> O que tem hoje?</h2>
+                            <p class="post-ajuda">Toque no produto para tirar ou pôr no post. Use <b>+</b> e <b>−</b> para a quantidade, ou <b>Acabou</b> quando esgotar — o site atualiza junto.</p>
+                            <div class="post-barra">
+                                <div class="abas" id="post-filtro">
+                                    <button data-filtro="todos" class="ativo">Todos</button>
+                                    <button data-filtro="post">No post</button>
+                                    <button data-filtro="esgotados">Esgotados</button>
+                                </div>
+                            </div>
+                            <div class="post-barra">
+                                <strong id="post-contagem"></strong>
+                                <span>
+                                    <button class="btn btn-claro btn-pequeno" id="post-todos">Marcar tudo</button>
+                                    <button class="btn btn-claro btn-pequeno" id="post-nenhum">Desmarcar</button>
+                                </span>
+                            </div>
+                            <div id="post-lista"></div>
+                        </div>
+                        <button class="barra-cesta post-barra-ir" id="post-ir-imagem"><span id="post-ir-qtd"></span><strong>Ver a imagem <i class="fa-solid fa-arrow-down"></i></strong></button>
+                    </div>
+
+                    <div class="post-coluna post-coluna-direita" id="post-direita">
+                        <div class="bloco">
+                            <h2><span class="post-passo">2</span> Sua imagem, pronta para postar</h2>
+                            <div class="abas" id="post-formato">
+                                <button data-formato="grupo" class="ativo"><i class="fa-solid fa-users"></i> Para os grupos</button>
+                                <button data-formato="status"><i class="fa-solid fa-mobile-screen"></i> Para o status</button>
+                            </div>
+                            <div class="post-previa" id="post-previa"></div>
+                            <p class="post-aviso" id="post-aviso-paginas" hidden></p>
+                            <button class="btn btn-whats btn-grande post-botao" id="post-compartilhar"><i class="fa-brands fa-whatsapp"></i> Compartilhar no WhatsApp</button>
+                            <div class="botoes-duplos post-botoes">
+                                <button class="btn btn-claro" id="post-baixar"><i class="fa-solid fa-download"></i> Salvar imagem</button>
+                                <button class="btn btn-claro" id="post-copiar"><i class="fa-regular fa-copy"></i> Copiar texto</button>
+                            </div>
+                        </div>
+
+                        <div class="bloco">
+                            <h2><span class="post-passo">3</span> Ajustes do post <small class="post-opcional">(opcional)</small></h2>
+                            <div class="campo"><label for="post-frase">Frase do topo</label><input type="text" id="post-frase" maxlength="32" placeholder="Disponível hoje"></div>
+                            <label class="interruptor"><input type="checkbox" id="post-preco" checked><span class="trilha"></span><span><strong>Mostrar os preços</strong></span></label>
+                            <label class="interruptor"><input type="checkbox" id="post-esgotados"><span class="trilha"></span><span><strong>Mostrar o que já esgotou</strong><small>Aparece com o carimbo "Esgotado" — ajuda a criar urgência.</small></span></label>
+                            <div class="campo">
+                                <label for="post-texto">Texto que vai junto <small>(pode editar)</small></label>
+                                <textarea id="post-texto" rows="12"></textarea>
+                                <button class="btn btn-claro btn-pequeno" id="post-texto-refazer" hidden><i class="fa-solid fa-rotate-left"></i> Voltar ao texto automático</button>
+                            </div>
+                            <div class="campo"><label for="post-link">Link do catálogo <small>(vai no texto)</small></label><input type="url" id="post-link" placeholder="https://..."></div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- CAIXA -->
@@ -294,6 +361,7 @@
             <section class="pagina" id="pg-mais">
                 <h1 class="titulo-pagina">Mais opções</h1>
                 <div class="atalhos">
+                    <button class="atalho" data-ir="post"><i class="fa-solid fa-camera-retro"></i><span>Post do dia</span></button>
                     <button class="atalho" data-ir="relatorio"><i class="fa-solid fa-chart-column"></i><span>Relatório do mês</span></button>
                     <button class="atalho" data-ir="ajustes"><i class="fa-solid fa-gear"></i><span>Ajustes da loja</span></button>
                     <a class="atalho" href="index.html" target="_blank"><i class="fa-solid fa-store"></i><span>Ver o site</span></a>
@@ -400,6 +468,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="dados.js"></script>
     <script src="admin.js"></script>
+    <script src="post-do-dia.js"></script>
 </body>
 
 </html>

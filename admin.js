@@ -1,6 +1,6 @@
 // ═════════════════════════════════════════════════════════════════════════════
 //  OLIMPO — Painel administrativo
-//  Início · Vender · Pedidos · Estoque · Caixa (entradas e saídas) · Relatório · Ajustes
+//  Início · Vender · Pedidos · Estoque · Post do dia · Caixa (entradas e saídas) · Relatório · Ajustes
 //  TF Solutions
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -102,7 +102,7 @@ function atualizarTela() {
     $("badge-pedidos").hidden = !novos;
     $("badge-pedidos").textContent = novos;
     $("atalho-pedidos").textContent = novos || "";
-    const render = { inicio: renderInicio, vender: renderVender, pedidos: renderPedidos, estoque: renderEstoque, caixa: renderCaixa, relatorio: renderRelatorio, ajustes: renderAjustes };
+    const render = { inicio: renderInicio, vender: renderVender, pedidos: renderPedidos, estoque: renderEstoque, caixa: renderCaixa, relatorio: renderRelatorio, ajustes: renderAjustes, post: renderPost };
     render[paginaAtual]?.();
 }
 
