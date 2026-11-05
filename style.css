@@ -85,6 +85,55 @@ input, select, textarea { font-family: inherit; font-size: 17px; }
 .carrinho-contador.pulo { animation: pulo .45s; }
 @keyframes pulo { 40% { transform: scale(1.35); } }
 
+/* ─── Vitrine de Natal ─── */
+.vitrine-natal {
+    position: relative; overflow: hidden; color: #fbf1dc;
+    padding: 1.4rem 0 1.5rem;
+    background:
+        radial-gradient(circle at 12% 0%, rgba(233, 198, 107, .28), transparent 40%),
+        radial-gradient(circle at 92% 100%, rgba(233, 198, 107, .18), transparent 45%),
+        linear-gradient(135deg, #5e0f17, #8a1c24 55%, #5a0d14);
+    border-top: 3px solid var(--ouro); border-bottom: 3px solid var(--ouro);
+}
+.vitrine-natal::before {
+    /* pontinhos dourados, como neve dourada */
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35;
+    background-image: radial-gradient(rgba(255, 230, 160, .9) 1px, transparent 1.6px);
+    background-size: 26px 26px;
+}
+.vn-topo {
+    position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 0 clamp(1rem, 4vw, 3rem) 1rem; max-width: 1280px; margin: 0 auto;
+}
+.vn-tag {
+    display: inline-flex; align-items: center; gap: .4rem; font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--cacau); background: linear-gradient(135deg, var(--ouro-claro), var(--ouro)); padding: .3rem .75rem; border-radius: 999px;
+}
+.vitrine-natal h2 { font-family: var(--fonte-titulo); font-size: clamp(1.6rem, 4vw, 2.3rem); line-height: 1.15; margin: .5rem 0 .25rem; color: #f6dd96; text-shadow: 0 2px 12px rgba(0, 0, 0, .35); }
+.vitrine-natal p { font-size: .95rem; color: #f3e3c3; max-width: 46rem; }
+.vn-trilho {
+    position: relative; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.vn-trilho::-webkit-scrollbar { display: none; }
+.vn-faixa { display: flex; gap: .9rem; width: max-content; padding: .3rem .45rem .5rem; }
+.vn-foto {
+    flex: 0 0 auto; width: 168px; height: 168px; padding: 0; border: 3px solid rgba(233, 198, 107, .85); border-radius: 18px;
+    overflow: hidden; background: var(--cacau); cursor: pointer; box-shadow: 0 10px 24px rgba(0, 0, 0, .35); transition: transform .2s;
+}
+.vn-foto:hover, .vn-foto:focus-visible { transform: translateY(-4px) scale(1.03); outline: none; border-color: #fff1c2; }
+.vn-foto img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
+.aviso-categoria {
+    display: flex; gap: .55rem; align-items: flex-start; margin: -.4rem 0 1.1rem; padding: .75rem 1rem; border-radius: 12px;
+    background: #fbefe0; border: 1px solid #f0d6b0; color: #6e3a12; font-size: .95rem; font-weight: 600;
+}
+.aviso-categoria i { color: #9a1d27; margin-top: .2rem; }
+@media (max-width: 560px) {
+    .vn-foto { width: 128px; height: 128px; border-radius: 14px; }
+    .vn-topo .btn { width: 100%; }
+}
+
 /* ─── Hero ─── */
 .hero {
     display: grid; grid-template-columns: 1.1fr .9fr; gap: 2rem; align-items: center;

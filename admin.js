@@ -675,6 +675,9 @@ function renderAjustes() {
     $("aj-titulo").value = config.heroTitulo || "";
     $("aj-subtitulo").value = config.heroSubtitulo || "";
     $("aj-sobre").value = config.sobreTexto || "";
+    $("aj-natal").checked = config.vitrineNatal !== false;
+    $("aj-natal-titulo").value = config.natalTitulo || "";
+    $("aj-natal-aviso").value = config.natalAviso || "";
     $("aj-dias").innerHTML = NOMES_DIAS.map((n, i) => `<label><input type="checkbox" value="${i}" ${(config.retiradaDias || []).includes(i) ? "checked" : ""}><span>${n}</span></label>`).join("");
     fretesEdit = (config.fretes || []).map((f) => ({ ...f }));
     renderFretes();
@@ -712,6 +715,9 @@ async function salvarAjustes() {
         retiradaDias: $$("#aj-dias input:checked").map((x) => Number(x.value)),
         heroTitulo: $("aj-titulo").value.trim() || CONFIG_PADRAO.heroTitulo,
         heroSubtitulo: $("aj-subtitulo").value.trim(), sobreTexto: $("aj-sobre").value.trim(),
+        vitrineNatal: $("aj-natal").checked,
+        natalTitulo: $("aj-natal-titulo").value.trim() || "Especiais de Natal",
+        natalAviso: $("aj-natal-aviso").value.trim(),
         fretes: fretesEdit.filter((f) => f.bairro.trim()).map((f) => ({ bairro: f.bairro.trim(), valor: Number(f.valor) || 0 })),
     };
     await Dados.salvar("configuracoes", "geral", novo);

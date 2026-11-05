@@ -156,18 +156,93 @@ document.addEventListener("DOMContentLoaded", async () => {
             .filter((c) => !categoriaAtiva || c.id === categoriaAtiva)
             .map((c) => {
                 // Disponíveis primeiro, os que acabaram vão pro fim
+                const semFoto = (x) => /foto-em-breve/.test(x.imagem || "") ? 1 : 0;
                 const lista = filtra(produtos.filter((x) => x.categoria === c.id))
-                    .sort((a, b) => (acabou(a) ? 1 : 0) - (acabou(b) ? 1 : 0));
+                    .sort((a, b) => (acabou(a) ? 1 : 0) - (acabou(b) ? 1 : 0) || semFoto(a) - semFoto(b));
                 total += lista.length;
                 if (!lista.length) return "";
                 return `
                     <section class="secao-categoria" id="cat-${c.id}">
                         <h2 class="titulo-secao"><i class="fa-solid ${c.icone || "fa-tag"}" aria-hidden="true"></i> ${escaparHtml(c.nome)}</h2>
+                        ${c.id === "natal" && config.natalAviso ? `<p class="aviso-categoria"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> ${escaparHtml(config.natalAviso)}</p>` : ""}
                         <div class="grade">${lista.map(htmlCard).join("")}</div>
                     </section>`;
             }).join("");
         $("sem-resultado").hidden = total > 0;
     };
+
+    // ─── VITRINE DE NATAL ────────────────────────────────────────────────────
+    // Só fotos dos doces de Natal, passando devagar na horizontal. Tocar abre o produto.
+    const FOTOS_EXTRAS_NATAL = {
+        "Panetone trufado": ["natal-panetone-trufado-3.jpg", "natal-panetone-trad-3.jpg", "natal-panetone-trad-2.jpg"],
+        "Panetone tradicional": ["natal-panetone-trad-1.jpg"],
+    };
+    const renderVitrineNatal = () => {
+        const daCategoria = produtos.filter((x) => x.categoria === "natal" && x.imagem && !/foto-em-breve/.test(x.imagem));
+        const ligada = config.vitrineNatal !== false && daCategoria.length > 0;
+        $("vitrine-natal").hidden = !ligada;
+        if (!ligada) return;
+        $("vn-titulo").textContent = config.natalTitulo || "Especiais de Natal";
+        $("vn-aviso").textContent = config.natalAviso || "";
+        $("vn-aviso").hidden = !config.natalAviso;
+        const fotos = [];
+        daCategoria.forEach((prod) => {
+            fotos.push({ id: prod.id, nome: prod.nome, src: prod.imagem });
+            (FOTOS_EXTRAS_NATAL[prod.nome] || []).forEach((f) => fotos.push({ id: prod.id, nome: prod.nome, src: IMG + f }));
+        });
+        // Embaralha de leve para não ficar tudo do mesmo tipo junto
+        for (let i = fotos.length - 1; i > 0; i -= 3) { const j = (i * 7) % (i + 1); [fotos[i], fotos[j]] = [fotos[j], fotos[i]]; }
+        const html = fotos.map((f) => `
+            <button class="vn-foto" type="button" data-abrir="${f.id}" aria-label="${escaparHtml(f.nome)}">
+                <img src="${escaparHtml(f.src)}" alt="${escaparHtml(f.nome)}" loading="lazy" draggable="false">
+            </button>`).join("");
+        // Duas cópias seguidas para a rolagem nunca acabar
+        $("vn-faixa").innerHTML = html + html.replace(/<button class="vn-foto"/g, '<button class="vn-foto" tabindex="-1" aria-hidden="true"');
+        iniciarRolagemNatal();
+    };
+
+    let rolagemNatalLigada = false;
+    const iniciarRolagemNatal = () => {
+        if (rolagemNatalLigada) return;
+        rolagemNatalLigada = true;
+        const trilho = $("vn-trilho");
+        const semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (semMovimento) return;
+        const VELOCIDADE = 28; // pixels por segundo — bem devagar
+        let pausadoAte = 0, anterior = null, posicao = 0;
+        const pausar = (ms = 2500) => { pausadoAte = performance.now() + ms; };
+        trilho.addEventListener("pointerdown", () => pausar(4000));
+        trilho.addEventListener("wheel", () => pausar(3000), { passive: true });
+        trilho.addEventListener("touchstart", () => pausar(4000), { passive: true });
+        trilho.addEventListener("mouseenter", () => pausar(60 * 60 * 1000));
+        trilho.addEventListener("mouseleave", () => pausar(800));
+        trilho.addEventListener("focusin", () => pausar(60 * 60 * 1000));
+        trilho.addEventListener("focusout", () => pausar(800));
+        const passo = (agora) => {
+            if (anterior === null) anterior = agora;
+            const dt = Math.min(0.1, (agora - anterior) / 1000);
+            anterior = agora;
+            const metade = trilho.scrollWidth / 2;
+            if (agora < pausadoAte || document.hidden) {
+                posicao = trilho.scrollLeft; // acompanha o que a pessoa arrastou
+            } else if (metade > trilho.clientWidth) {
+                posicao += VELOCIDADE * dt;
+                if (posicao >= metade) posicao -= metade;
+                trilho.scrollLeft = posicao;
+            }
+            if (trilho.scrollLeft >= metade) { trilho.scrollLeft -= metade; posicao = trilho.scrollLeft; }
+            requestAnimationFrame(passo);
+        };
+        requestAnimationFrame(passo);
+    };
+
+    $("vn-ver").addEventListener("click", () => {
+        categoriaAtiva = "natal";
+        termoBusca = ""; $("busca").value = "";
+        renderChips();
+        renderCatalogo();
+        $("cardapio").scrollIntoView({ behavior: "smooth" });
+    });
 
     // ─── MODAL DO PRODUTO ────────────────────────────────────────────────────
     let mpProduto = null, mpTamanho = 0, mpOpcao = null, mpQtd = 1;
@@ -619,6 +694,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (tipoEntrega === "retirada") document.querySelector('.alternar-btn[data-tipo="retirada"]').click();
     renderChips();
     renderCatalogo();
+    renderVitrineNatal();
     atualizarCarrinho();
     mostrarEtapa(1);
 });
