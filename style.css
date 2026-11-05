@@ -227,6 +227,7 @@ main { padding: 1.5rem clamp(1rem, 4vw, 3rem) 1rem; max-width: 1280px; margin: 0
 }
 .modal-produto.aberto { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
 .modal-produto > img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.modal-produto > img.inteira { aspect-ratio: 1; max-height: 62vh; object-fit: contain; background: var(--creme-2); }
 .mp-corpo { padding: 1.2rem 1.3rem 1.3rem; }
 .mp-tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .4rem; }
 .mp-corpo h2 { font-size: 1.35rem; line-height: 1.25; margin-bottom: .4rem; }

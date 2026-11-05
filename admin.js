@@ -406,12 +406,14 @@ function renderEstoque() {
     }).join("")}`).join("") : `<div class="bloco"><p class="vazio">Nenhum produto aqui.</p></div>`;
 }
 
-let produtoEditando = null, fotoNova = null;
+let produtoEditando = null, fotoNova = null, fotoArquivo = null;
 
 function abrirProduto(id) {
     produtoEditando = id ? produtos.find((x) => x.id === Number(id)) : null;
     const p = produtoEditando || { ativo: true, estoqueMinimo: 3, categoria: categorias[0]?.id };
-    fotoNova = null;
+    fotoNova = null; fotoArquivo = null;
+    $("jp-foto").value = "";
+    $("jp-foto-inteira").checked = !!p.fotoInteira;
     $("jp-titulo").textContent = produtoEditando ? "Editar produto" : "Novo produto";
     $("jp-foto-previa").src = p.imagem || "assets/logo-olimpo.png";
     $("jp-nome").value = p.nome || "";
@@ -432,18 +434,36 @@ function abrirProduto(id) {
     abrirJanela("jn-produto");
 }
 
-function reduzirFoto(arquivo) {
+// inteira = true: não corta a foto (artes com preço e escrita). A imagem toda fica
+// no centro de um quadrado, e o espaço que sobra é preenchido com a própria foto desfocada.
+function reduzirFoto(arquivo, inteira = false) {
     return new Promise((resolve, reject) => {
         const leitor = new FileReader();
         leitor.onload = () => {
             const img = new Image();
             img.onload = () => {
-                const lado = Math.min(img.width, img.height);
-                const tam = Math.min(700, lado);
                 const cv = document.createElement("canvas");
-                cv.width = cv.height = tam;
-                cv.getContext("2d").drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, tam, tam);
-                resolve(cv.toDataURL("image/jpeg", 0.8));
+                const ctx = cv.getContext("2d");
+                if (!inteira) {
+                    const lado = Math.min(img.width, img.height);
+                    const tam = Math.min(700, lado);
+                    cv.width = cv.height = tam;
+                    ctx.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, tam, tam);
+                } else {
+                    const tam = Math.min(900, Math.max(img.width, img.height));
+                    cv.width = cv.height = tam;
+                    // Fundo: a foto cobrindo o quadrado, desfocada e um pouco escurecida
+                    const borrao = Math.round(tam / 25), folga = borrao * 3; // folga evita borda escura do desfoque
+                    const cobre = Math.max((tam + folga * 2) / img.width, (tam + folga * 2) / img.height);
+                    ctx.filter = `blur(${borrao}px) brightness(.85)`;
+                    ctx.drawImage(img, (tam - img.width * cobre) / 2, (tam - img.height * cobre) / 2, img.width * cobre, img.height * cobre);
+                    ctx.filter = "none";
+                    // Frente: a foto inteira, sem cortar
+                    const cabe = Math.min(tam / img.width, tam / img.height);
+                    const w = img.width * cabe, h = img.height * cabe;
+                    ctx.drawImage(img, (tam - w) / 2, (tam - h) / 2, w, h);
+                }
+                resolve(cv.toDataURL("image/jpeg", 0.82));
             };
             img.onerror = reject;
             img.src = leitor.result;
@@ -472,6 +492,7 @@ async function salvarProduto() {
         prazoDias: $("jp-encomenda").checked ? Number($("jp-prazo").value) || null : null,
         destaque: $("jp-destaque").checked, ativo: $("jp-ativo").checked,
         imagem: fotoNova || produtoEditando?.imagem || "assets/logo-olimpo.png",
+        fotoInteira: $("jp-foto-inteira").checked,
     };
     if (dados.tamanhos) dados.preco = dados.tamanhos[0].preco;
     await Dados.salvar("produtos", id, dados);
@@ -807,8 +828,18 @@ function ligarEventos() {
     $("jp-foto").addEventListener("change", async (e) => {
         const f = e.target.files[0];
         if (!f) return;
-        try { fotoNova = await reduzirFoto(f); $("jp-foto-previa").src = fotoNova; }
+        fotoArquivo = f;
+        try { fotoNova = await reduzirFoto(f, $("jp-foto-inteira").checked); $("jp-foto-previa").src = fotoNova; }
         catch { avisar("Não consegui abrir essa foto.", false); }
+    });
+    // Marcou/desmarcou "Foto inteira": refaz a foto escolhida agora; se for uma foto antiga, pede para escolher de novo
+    $("jp-foto-inteira").addEventListener("change", async () => {
+        if (fotoArquivo) {
+            try { fotoNova = await reduzirFoto(fotoArquivo, $("jp-foto-inteira").checked); $("jp-foto-previa").src = fotoNova; }
+            catch { avisar("Não consegui abrir essa foto.", false); }
+        } else if (produtoEditando?.imagem && $("jp-foto-inteira").checked !== !!produtoEditando.fotoInteira) {
+            avisar("Toque em \"Trocar foto\" e escolha a foto de novo para aplicar.", true);
+        }
     });
     $("jp-encomenda").addEventListener("change", () => { $("jp-prazo-campo").hidden = !$("jp-encomenda").checked; });
     $("jp-salvar").addEventListener("click", salvarProduto);

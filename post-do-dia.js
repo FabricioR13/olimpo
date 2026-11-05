@@ -184,6 +184,18 @@ function postImagemCobrindo(ctx, img, x, y, w, h) {
     const sw = w / escala, sh = h / escala;
     ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y, w, h);
 }
+// Para fotos marcadas "Foto inteira": fundo desfocado + a arte toda no centro, sem cortar o preço e a escrita
+function postImagemInteira(ctx, img, x, y, w, h) {
+    const borrao = Math.round(Math.max(w, h) / 22), folga = borrao * 3; // folga evita borda escura do desfoque
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    ctx.filter = `blur(${borrao}px) brightness(.85)`;
+    postImagemCobrindo(ctx, img, x - folga, y - folga, w + folga * 2, h + folga * 2);
+    ctx.restore();
+    const cabe = Math.min(w / img.width, h / img.height);
+    const iw = img.width * cabe, ih = img.height * cabe;
+    ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+}
 function postQuebrarTexto(ctx, texto, larguraMax, maxLinhas) {
     const palavras = texto.split(/\s+/);
     const linhas = [];
@@ -399,7 +411,8 @@ function postDesenharCartao(ctx, p, esgotado, foto, x, y, w, h, alturaTexto, tam
     ctx.save();
     postRetangulo(ctx, x, y, w, h, r);
     ctx.clip();
-    if (foto) postImagemCobrindo(ctx, foto, x, y, w, alturaFoto);
+    if (foto && p.fotoInteira) postImagemInteira(ctx, foto, x, y, w, alturaFoto);
+    else if (foto) postImagemCobrindo(ctx, foto, x, y, w, alturaFoto);
     else {
         ctx.fillStyle = "#e9dcc3";
         ctx.fillRect(x, y, w, alturaFoto);

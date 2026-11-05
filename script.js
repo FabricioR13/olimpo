@@ -185,6 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!prod) return;
         mpProduto = prod; mpTamanho = 0; mpOpcao = null; mpQtd = 1;
         $("mp-foto").src = prod.imagem; $("mp-foto").alt = prod.nome;
+        $("mp-foto").classList.toggle("inteira", !!prod.fotoInteira);
         $("mp-nome").textContent = prod.nome;
         $("mp-descricao").textContent = prod.descricao || "";
         $("mp-tags").innerHTML = htmlSelos(prod);
