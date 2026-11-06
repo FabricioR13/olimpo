@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const trilho = $("vn-trilho");
         const semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (semMovimento) return;
-        const VELOCIDADE = 28; // pixels por segundo — bem devagar
+        const VELOCIDADE = 16; // pixels por segundo — bem devagar
         let pausadoAte = 0, anterior = null, posicao = 0;
         const pausar = (ms = 2500) => { pausadoAte = performance.now() + ms; };
         trilho.addEventListener("pointerdown", () => pausar(4000));

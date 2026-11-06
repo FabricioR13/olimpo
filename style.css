@@ -117,9 +117,9 @@ input, select, textarea { font-family: inherit; font-size: 17px; }
             mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
 }
 .vn-trilho::-webkit-scrollbar { display: none; }
-.vn-faixa { display: flex; gap: .9rem; width: max-content; padding: .3rem .45rem .5rem; }
+.vn-faixa { display: flex; gap: 1.1rem; width: max-content; padding: .3rem .45rem .5rem; }
 .vn-foto {
-    flex: 0 0 auto; width: 168px; height: 168px; padding: 0; border: 3px solid rgba(233, 198, 107, .85); border-radius: 18px;
+    flex: 0 0 auto; width: 230px; height: 230px; padding: 0; border: 3px solid rgba(233, 198, 107, .85); border-radius: 18px;
     overflow: hidden; background: var(--cacau); cursor: pointer; box-shadow: 0 10px 24px rgba(0, 0, 0, .35); transition: transform .2s;
 }
 .vn-foto:hover, .vn-foto:focus-visible { transform: translateY(-4px) scale(1.03); outline: none; border-color: #fff1c2; }
@@ -130,7 +130,7 @@ input, select, textarea { font-family: inherit; font-size: 17px; }
 }
 .aviso-categoria i { color: #9a1d27; margin-top: .2rem; }
 @media (max-width: 560px) {
-    .vn-foto { width: 128px; height: 128px; border-radius: 14px; }
+    .vn-foto { width: 180px; height: 180px; border-radius: 16px; }
     .vn-topo .btn { width: 100%; }
 }
 
