@@ -156,7 +156,18 @@
                     <button class="btn btn-ouro" id="novo-produto"><i class="fa-solid fa-plus"></i> Novo produto</button>
                 </div>
                 <p class="subtitulo">Use <b>+</b> quando produzir e <b>−</b> quando sair. Desligue "No site" para esconder um produto.</p>
-                <div class="busca"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="estoque-busca" placeholder="Procurar produto"></div>
+                <div class="busca-estoque">
+                    <div class="busca">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" id="estoque-busca" placeholder="Digite o começo do nome (ex: bolo, cuca, pão...)" autocomplete="off" aria-autocomplete="list" aria-controls="estoque-sugestoes">
+                        <button type="button" class="busca-limpar" id="estoque-limpar" hidden aria-label="Limpar busca"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="busca-sugestoes" id="estoque-sugestoes" role="listbox" hidden></div>
+                    </div>
+                    <div class="busca-linha">
+                        <select id="estoque-categoria" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select>
+                        <span id="estoque-contagem"></span>
+                    </div>
+                </div>
                 <div class="abas" id="filtro-estoque">
                     <button data-filtro="todos" class="ativo">Todos</button>
                     <button data-filtro="baixo">Acabando</button>

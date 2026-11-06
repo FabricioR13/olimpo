@@ -364,16 +364,64 @@ async function acaoPedido(docId, acao) {
 }
 
 // ─── ESTOQUE / PRODUTOS ──────────────────────────────────────────────────────
+// Busca sem se preocupar com acento nem maiúscula: "pao" acha "Pão"
+const semAcento = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+// Guia de busca: mostra até 8 sugestões enquanto digita (começo do nome primeiro)
+function sugestoesEstoque() {
+    const caixa = $("estoque-sugestoes");
+    const termo = semAcento($("estoque-busca").value.trim());
+    if (!termo) { caixa.hidden = true; caixa.innerHTML = ""; return; }
+    const pontua = (p) => {
+        const n = semAcento(p.nome);
+        if (n.startsWith(termo)) return 0;
+        if (n.split(/[\s(),-]+/).some((w) => w.startsWith(termo))) return 1;
+        return n.includes(termo) ? 2 : 9;
+    };
+    const achados = produtos.map((p) => ({ p, s: pontua(p) })).filter((x) => x.s < 9)
+        .sort((a, b) => a.s - b.s || a.p.nome.localeCompare(b.p.nome, "pt-BR")).slice(0, 8);
+    if (!achados.length) {
+        caixa.innerHTML = `<p class="sugestao-vazia">Nenhum produto com "${escaparHtml($("estoque-busca").value.trim())}"</p>`;
+        caixa.hidden = false; return;
+    }
+    const nomeCat = (id) => (categorias.find((c) => c.id === id) || {}).nome || "";
+    caixa.innerHTML = achados.map(({ p }) => `
+        <button type="button" class="sugestao" role="option" data-sugestao="${p.id}">
+            <img src="${escaparHtml(p.imagem)}" alt="" loading="lazy">
+            <span><strong>${escaparHtml(p.nome)}</strong><small>${escaparHtml(nomeCat(p.categoria))}</small></span>
+            <b>${formatarMoeda(precoBase(p))}</b>
+        </button>`).join("");
+    caixa.hidden = false;
+}
+function escolherSugestao(id) {
+    const p = produtos.find((x) => x.id === Number(id));
+    if (!p) return;
+    $("estoque-busca").value = p.nome;
+    $("estoque-categoria").value = "";
+    $("estoque-sugestoes").hidden = true;
+    renderEstoque();
+}
 function renderEstoque() {
     $$("#filtro-estoque button").forEach((b) => b.classList.toggle("ativo", b.dataset.filtro === filtroEstoque));
-    const termo = $("estoque-busca").value.trim().toLowerCase();
-    let lista = produtos.filter((p) => !termo || p.nome.toLowerCase().includes(termo));
+    const termo = semAcento($("estoque-busca").value.trim());
+    const catFiltro = $("estoque-categoria").value;
+    $("estoque-limpar").hidden = !termo;
+    // Preenche o filtro de categorias (mantém a escolha atual)
+    const opcoesCat = `<option value="">Todas as categorias</option>` + categorias.map((c) => `<option value="${escaparHtml(c.id)}">${escaparHtml(c.nome)}</option>`).join("");
+    if ($("estoque-categoria").dataset.montado !== String(categorias.length)) {
+        $("estoque-categoria").innerHTML = opcoesCat;
+        $("estoque-categoria").value = catFiltro;
+        $("estoque-categoria").dataset.montado = String(categorias.length);
+    }
+    let lista = produtos.filter((p) => !termo || semAcento(p.nome).includes(termo));
+    if (catFiltro) lista = lista.filter((p) => p.categoria === catFiltro);
     if (filtroEstoque === "baixo") lista = lista.filter((p) => controlaEstoque(p) && Number(p.estoque) <= Number(p.estoqueMinimo ?? 3));
     if (filtroEstoque === "fora") lista = lista.filter((p) => p.ativo === false);
 
     const grupos = categorias.map((c) => ({ c, itens: lista.filter((p) => p.categoria === c.id) })).filter((g) => g.itens.length);
     const semCat = lista.filter((p) => !categorias.some((c) => c.id === p.categoria));
     if (semCat.length) grupos.push({ c: { nome: "Sem categoria" }, itens: semCat });
+    $("estoque-contagem").textContent = lista.length === 1 ? "1 produto" : `${lista.length} produtos`;
 
     $("lista-estoque").innerHTML = grupos.length ? grupos.map((g) => `
         <p class="dia-cabecalho"><span>${escaparHtml(g.c.nome)}</span><span>${g.itens.length}</span></p>
@@ -828,7 +876,24 @@ function ligarEventos() {
     $("abas-pedidos").addEventListener("click", (e) => { const b = e.target.closest("button[data-status]"); if (b) { statusPedidos = b.dataset.status; renderPedidos(); } });
 
     // Estoque
-    $("estoque-busca").addEventListener("input", renderEstoque);
+    $("estoque-busca").addEventListener("input", () => { renderEstoque(); sugestoesEstoque(); });
+    $("estoque-busca").addEventListener("focus", sugestoesEstoque);
+    $("estoque-busca").addEventListener("keydown", (e) => {
+        if (e.key === "Escape") { $("estoque-sugestoes").hidden = true; }
+        if (e.key === "Enter") { e.preventDefault(); $("estoque-sugestoes").hidden = true; e.target.blur(); }
+        if (e.key === "ArrowDown") { const b = $("estoque-sugestoes").querySelector(".sugestao"); if (b) { e.preventDefault(); b.focus(); } }
+    });
+    $("estoque-sugestoes").addEventListener("keydown", (e) => {
+        const itens = [...$("estoque-sugestoes").querySelectorAll(".sugestao")];
+        const i = itens.indexOf(document.activeElement);
+        if (e.key === "ArrowDown" && i < itens.length - 1) { e.preventDefault(); itens[i + 1].focus(); }
+        if (e.key === "ArrowUp") { e.preventDefault(); (i > 0 ? itens[i - 1] : $("estoque-busca")).focus(); }
+        if (e.key === "Escape") { $("estoque-sugestoes").hidden = true; $("estoque-busca").focus(); }
+    });
+    $("estoque-sugestoes").addEventListener("click", (e) => { const b = e.target.closest("[data-sugestao]"); if (b) escolherSugestao(b.dataset.sugestao); });
+    document.addEventListener("click", (e) => { if (!e.target.closest(".busca-estoque")) $("estoque-sugestoes").hidden = true; });
+    $("estoque-limpar").addEventListener("click", () => { $("estoque-busca").value = ""; $("estoque-sugestoes").hidden = true; renderEstoque(); $("estoque-busca").focus(); });
+    $("estoque-categoria").addEventListener("change", renderEstoque);
     $("filtro-estoque").addEventListener("click", (e) => { const b = e.target.closest("button[data-filtro]"); if (b) { filtroEstoque = b.dataset.filtro; renderEstoque(); } });
     $("novo-produto").addEventListener("click", () => abrirProduto(null));
     $("jp-foto").addEventListener("change", async (e) => {

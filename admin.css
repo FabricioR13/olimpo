@@ -303,6 +303,25 @@ img { display: block; max-width: 100%; }
 
 .area-impressao { display: none; }
 
+/* Guia de busca do estoque */
+.busca-estoque { position: sticky; top: var(--altura-topo, 70px); z-index: 25; background: var(--creme); padding: .6rem 0 .2rem; margin: 0 0 .4rem; }
+.busca-estoque .busca { margin-bottom: .5rem; }
+.busca-estoque .busca input { padding-right: 3rem; font-size: 1.05rem; }
+.busca-estoque .busca input::-webkit-search-cancel-button { display: none; }
+.busca-limpar { position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border: none; border-radius: 50%; background: var(--creme-2); color: var(--texto); }
+.busca-limpar i { position: static; transform: none; color: inherit; }
+.busca-sugestoes { position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: var(--branco); border: 2px solid var(--linha); border-radius: 14px; box-shadow: 0 14px 34px rgba(60, 40, 20, .18); max-height: 60vh; overflow-y: auto; padding: .35rem; }
+.sugestao { width: 100%; display: grid; grid-template-columns: 46px 1fr auto; gap: .7rem; align-items: center; padding: .45rem .5rem; border: none; background: none; border-radius: 10px; text-align: left; color: var(--texto); }
+.sugestao:hover, .sugestao:focus-visible { background: var(--creme); outline: none; }
+.sugestao img { width: 46px; height: 46px; border-radius: 10px; object-fit: cover; }
+.sugestao strong { display: block; font-size: .98rem; line-height: 1.2; }
+.sugestao small { display: block; color: var(--suave); font-size: .82rem; }
+.sugestao b { color: var(--ouro-escuro); font-size: .95rem; white-space: nowrap; }
+.sugestao-vazia { padding: .7rem .8rem; color: var(--suave); }
+.busca-linha { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-bottom: .4rem; }
+.busca-linha select { flex: 1; max-width: 340px; padding: .6rem .8rem; border-radius: 12px; border: 2px solid var(--linha); background: var(--branco); font-weight: 700; color: var(--texto); }
+#estoque-contagem { color: var(--suave); font-weight: 700; font-size: .95rem; white-space: nowrap; }
+
 /* Post do dia */
 .chamada-post { width: 100%; display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.2rem; margin: .8rem 0 .4rem; border: none; border-radius: var(--raio); background: linear-gradient(135deg, var(--cacau), var(--cacau-2)); color: var(--creme); text-align: left; box-shadow: var(--sombra); }
 .chamada-post > i:first-child { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-size: 1.5rem; background: linear-gradient(135deg, var(--ouro-claro), var(--ouro)); color: var(--cacau); }
