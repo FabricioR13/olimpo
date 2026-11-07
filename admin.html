@@ -191,20 +191,18 @@
                     <div class="post-coluna">
                         <div class="bloco">
                             <h2><span class="post-passo">1</span> O que tem hoje?</h2>
-                            <p class="post-ajuda">Toque no produto para tirar ou pôr no post. Use <b>+</b> e <b>−</b> para a quantidade, ou <b>Acabou</b> quando esgotar — o site atualiza junto.</p>
+                            <p class="post-ajuda">Toque no produto para tirar ou pôr no post. Na caixinha de cima você marca ou desmarca todos de uma vez. Os Especiais de Natal (encomenda) também podem ir no post. Use <b>+</b> e <b>−</b> para a quantidade, ou <b>Acabou</b> quando esgotar — o site atualiza junto.</p>
                             <div class="post-barra">
                                 <div class="abas" id="post-filtro">
                                     <button data-filtro="todos" class="ativo">Todos</button>
                                     <button data-filtro="post">No post</button>
+                                    <button data-filtro="encomenda">Encomendas / Natal</button>
                                     <button data-filtro="esgotados">Esgotados</button>
                                 </div>
                             </div>
                             <div class="post-barra">
+                                <label class="post-todos"><input type="checkbox" id="post-marcar-todos"><span class="post-check"><i class="fa-solid fa-check"></i></span><span id="post-marcar-todos-texto">Marcar todos</span></label>
                                 <strong id="post-contagem"></strong>
-                                <span>
-                                    <button class="btn btn-claro btn-pequeno" id="post-todos">Marcar tudo</button>
-                                    <button class="btn btn-claro btn-pequeno" id="post-nenhum">Desmarcar</button>
-                                </span>
                             </div>
                             <div id="post-lista"></div>
                         </div>

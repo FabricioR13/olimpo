@@ -431,3 +431,12 @@ img { display: block; max-width: 100%; }
 }
 
 .login-esqueci { background: none; border: none; color: var(--ouro-escuro); font-weight: 800; font-size: .98rem; text-decoration: underline; padding: .4rem; margin-top: .3rem; }
+
+/* Caixinha "marcar todos" do Post do dia */
+.post-todos { display: inline-flex; align-items: center; gap: .6rem; padding: .5rem .8rem .5rem .55rem; border: 2px solid var(--linha); border-radius: 12px; background: var(--branco); font-weight: 800; cursor: pointer; user-select: none; }
+.post-todos input { position: absolute; opacity: 0; pointer-events: none; }
+.post-todos input:checked + .post-check { background: var(--verde); border-color: var(--verde); color: #fff; }
+.post-todos input:indeterminate + .post-check { background: var(--verde-claro); border-color: var(--verde); color: var(--verde); }
+.post-todos input:indeterminate + .post-check i::before { content: "\f068"; }
+.post-todos input:focus-visible + .post-check { outline: 3px solid var(--ouro); }
+.post-todos input:disabled ~ span { opacity: .5; }

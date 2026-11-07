@@ -15,10 +15,12 @@ let postFormato = "grupo";
 let postFiltro = "todos";
 let postMostrarPreco = true;
 let postMostrarEsgotados = false;
-let postFora = new Set();        // produtos que a dona tirou do post de hoje
+let postFora = new Set();        // produtos disponíveis que a dona tirou do post de hoje
+let postEncDentro = new Set();   // produtos sob encomenda (ex.: Natal) que ela escolheu postar
 let postTextoEditado = false;
 let postCanvases = [];
 let postRenderId = 0;
+let postListaAtual = [];
 const postImagens = {};
 
 // ─── Preferências do dia (só neste aparelho) ─────────────────────────────────
@@ -26,7 +28,7 @@ function postCarregarPreferencias() {
     try {
         const salvo = JSON.parse(localStorage.getItem(CHAVE_POST) || "null");
         if (!salvo) return;
-        if (salvo.dia === hojeStr()) postFora = new Set(salvo.fora || []);
+        if (salvo.dia === hojeStr()) { postFora = new Set(salvo.fora || []); postEncDentro = new Set(salvo.encomendas || []); }
         if (salvo.formato && POST_FORMATOS[salvo.formato]) postFormato = salvo.formato;
         if (typeof salvo.preco === "boolean") postMostrarPreco = salvo.preco;
         if (typeof salvo.esgotados === "boolean") postMostrarEsgotados = salvo.esgotados;
@@ -36,7 +38,7 @@ function postCarregarPreferencias() {
 function postSalvarPreferencias() {
     try {
         localStorage.setItem(CHAVE_POST, JSON.stringify({
-            dia: hojeStr(), fora: [...postFora], formato: postFormato,
+            dia: hojeStr(), fora: [...postFora], encomendas: [...postEncDentro], formato: postFormato,
             preco: postMostrarPreco, esgotados: postMostrarEsgotados, frase: $("post-frase").value,
         }));
     } catch (e) { /* ignora */ }
@@ -46,7 +48,14 @@ function postSalvarPreferencias() {
 const postTemHoje = (p) => p.ativo !== false && p.disponibilidade !== "encomenda" && (!controlaEstoque(p) || Number(p.estoque) > 0);
 const postEsgotado = (p) => p.ativo !== false && controlaEstoque(p) && Number(p.estoque) <= 0;
 const postUltimas = (p) => controlaEstoque(p) && Number(p.estoque) > 0 && Number(p.estoque) <= Number(p.estoqueMinimo ?? 2);
-const postNoPost = (p) => postTemHoje(p) && !postFora.has(p.id);
+// Sob encomenda (ex.: Especiais de Natal): não é "pronta entrega", mas ela pode escolher postar
+const postEncomenda = (p) => p.ativo !== false && p.disponibilidade === "encomenda";
+const postSelecionavel = (p) => postTemHoje(p) || postEncomenda(p);
+const postNoPost = (p) => postTemHoje(p) ? !postFora.has(p.id) : (postEncomenda(p) && postEncDentro.has(p.id));
+const postMarcar = (p, marcar) => {
+    if (postTemHoje(p)) { if (marcar) postFora.delete(p.id); else postFora.add(p.id); }
+    else if (postEncomenda(p)) { if (marcar) postEncDentro.add(p.id); else postEncDentro.delete(p.id); }
+};
 
 function postOrdenar(lista) {
     const ordemCat = Object.fromEntries(categorias.map((c, i) => [c.id, i]));
@@ -85,6 +94,16 @@ function renderPost() {
     let lista = produtos.filter((p) => p.ativo !== false);
     if (postFiltro === "post") lista = lista.filter(postNoPost);
     if (postFiltro === "esgotados") lista = lista.filter(postEsgotado);
+    if (postFiltro === "encomenda") lista = lista.filter(postEncomenda);
+    postListaAtual = lista;
+    // Caixinha "marcar todos": vale para o que está aparecendo na lista agora
+    const marcaveis = lista.filter(postSelecionavel);
+    const marcados = marcaveis.filter(postNoPost).length;
+    const cx = $("post-marcar-todos");
+    cx.disabled = !marcaveis.length;
+    cx.checked = marcaveis.length > 0 && marcados === marcaveis.length;
+    cx.indeterminate = marcados > 0 && marcados < marcaveis.length;
+    $("post-marcar-todos-texto").textContent = postFiltro === "encomenda" ? "Marcar todas as encomendas" : postFiltro === "post" ? "Marcar todos" : "Marcar todos";
 
     const grupos = categorias.map((c) => ({ c, itens: lista.filter((p) => p.categoria === c.id) })).filter((g) => g.itens.length);
     const semCat = lista.filter((p) => !categorias.some((c) => c.id === p.categoria));
@@ -100,7 +119,7 @@ function renderPost() {
             : !tem ? `<span class="pilula acabou">Esgotado</span>`
                 : postUltimas(p) ? `<span class="pilula pouco">Últimas</span>` : "";
         return `
-            <div class="post-linha${noPost ? " no-post" : ""}${!tem ? " sem" : ""}">
+            <div class="post-linha${noPost ? " no-post" : ""}${!postSelecionavel(p) ? " sem" : ""}">
                 <button class="post-marcar" data-post-marcar="${p.id}" aria-pressed="${noPost}" aria-label="${noPost ? "Tirar do post" : "Colocar no post"}: ${escaparHtml(p.nome)}">
                     <span class="post-check"><i class="fa-solid fa-check"></i></span>
                     <img src="${escaparHtml(p.imagem)}" alt="" loading="lazy">
@@ -147,6 +166,7 @@ function postMontarTexto() {
         const esg = postOrdenar(produtos.filter(postEsgotado));
         if (esg.length) linhas.push(`❌ Já esgotou: ${esg.map((p) => p.nome).join(", ")}`, "");
     }
+    if (itens.some(postEncomenda) && config.natalAviso) linhas.push(`🎄 ${config.natalAviso}`);
     if (config.aviso) linhas.push(`🛵 ${config.aviso}`);
     const link = postLinkCatalogo();
     linhas.push(`👉 *Faça seu pedido pelo catálogo:*`, link || "(link do catálogo)");
@@ -466,7 +486,8 @@ function postDesenharCartao(ctx, p, esgotado, foto, x, y, w, h, alturaTexto, tam
     // Selos
     const tags = Array.isArray(p.tags) ? p.tags : [];
     const tamSelo = Math.max(17, tamNome * 0.62);
-    if (!esgotado && postUltimas(p)) postSelo(ctx, "ÚLTIMAS!", x + 14, y + 14, tamSelo, "#b8392a", "#fff");
+    if (!esgotado && postEncomenda(p)) postSelo(ctx, "ENCOMENDE", x + 14, y + 14, tamSelo, "#8a1c24", "#f6dd96");
+    else if (!esgotado && postUltimas(p)) postSelo(ctx, "ÚLTIMAS!", x + 14, y + 14, tamSelo, "#b8392a", "#fff");
     else if (!esgotado && p.destaque) postSelo(ctx, "MAIS PEDIDO", x + 14, y + 14, tamSelo, "#1c1512", "#e9c66b");
     if (!esgotado && tags.length) {
         ctx.font = `800 ${tamSelo}px "Nunito", sans-serif`;
@@ -581,18 +602,21 @@ function ligarEventosPost() {
         const m = e.target.closest("[data-post-marcar]");
         if (!m) return;
         const p = produtos.find((x) => x.id === Number(m.dataset.postMarcar));
-        if (!postTemHoje(p)) {
-            avisar(p.disponibilidade === "encomenda" ? "Esse produto é sob encomenda, não entra no post do dia." : "Está esgotado. Toque em + para dizer quantos tem hoje.", false);
+        if (!postSelecionavel(p)) {
+            avisar("Está esgotado. Toque em + para dizer quantos tem hoje.", false);
             return;
         }
-        if (postFora.has(p.id)) postFora.delete(p.id); else postFora.add(p.id);
+        postMarcar(p, !postNoPost(p));
         postSalvarPreferencias();
         renderPost();
     });
     $("post-filtro").addEventListener("click", (e) => { const b = e.target.closest("button[data-filtro]"); if (b) { postFiltro = b.dataset.filtro; renderPost(); } });
     $("post-formato").addEventListener("click", (e) => { const b = e.target.closest("button[data-formato]"); if (b) { postFormato = b.dataset.formato; postSalvarPreferencias(); renderPost(); } });
-    $("post-todos").addEventListener("click", () => { postFora.clear(); postSalvarPreferencias(); renderPost(); });
-    $("post-nenhum").addEventListener("click", () => { produtos.filter(postTemHoje).forEach((p) => postFora.add(p.id)); postSalvarPreferencias(); renderPost(); });
+    $("post-marcar-todos").addEventListener("change", (e) => {
+        postListaAtual.filter(postSelecionavel).forEach((p) => postMarcar(p, e.target.checked));
+        postSalvarPreferencias();
+        renderPost();
+    });
     $("post-preco").addEventListener("change", (e) => { postMostrarPreco = e.target.checked; postSalvarPreferencias(); renderPost(); });
     $("post-esgotados").addEventListener("change", (e) => { postMostrarEsgotados = e.target.checked; postSalvarPreferencias(); renderPost(); });
     $("post-frase").addEventListener("input", () => { postSalvarPreferencias(); postAtualizarTexto(); postDesenharLogo(); });
