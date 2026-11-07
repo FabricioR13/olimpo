@@ -9,7 +9,14 @@
 //     (Firestore + login por e-mail/senha). Regras em regras.md.
 // ═════════════════════════════════════════════════════════════════════════════
 
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAU9m89_OAsxJy7MggJkdY88wmvuCISALU",
+    authDomain: "mamonas-acai.firebaseapp.com",
+    projectId: "mamonas-acai", // projeto reaproveitado (nome no console: Olimpo); o ID não muda
+    storageBucket: "mamonas-acai.firebasestorage.app",
+    messagingSenderId: "778665319873",
+    appId: "1:778665319873:web:bd7b95b2f65f5ac08aa340",
+};
 // Exemplo:
 // const FIREBASE_CONFIG = {
 //   apiKey: "...", authDomain: "olimpo-xxxx.firebaseapp.com", projectId: "olimpo-xxxx",

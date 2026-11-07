@@ -173,6 +173,11 @@
                     <button data-filtro="baixo">Acabando</button>
                     <button data-filtro="fora">Fora do site</button>
                 </div>
+                <div class="bloco bloco-carregar" id="estoque-vazio" hidden>
+                    <h2><i class="fa-solid fa-cloud-arrow-up"></i> O cardápio ainda está vazio</h2>
+                    <p>O banco de dados começa sem nada. Toque abaixo para enviar o cardápio da Olimpo (produtos, categorias e ajustes da loja) de uma vez só.</p>
+                    <button class="btn btn-ouro btn-grande" data-carregar-cardapio><i class="fa-solid fa-cloud-arrow-up"></i> Carregar cardápio inicial</button>
+                </div>
                 <div id="lista-estoque"></div>
             </section>
 
@@ -366,6 +371,12 @@
                 </div>
 
                 <button class="btn btn-ouro btn-grande salvar-fixo" id="aj-salvar"><i class="fa-solid fa-floppy-disk"></i> Salvar ajustes</button>
+
+                <div class="bloco bloco-ajuda" id="aj-banco" hidden>
+                    <h2><i class="fa-solid fa-database"></i> Cardápio inicial</h2>
+                    <p>Envia de novo o cardápio que veio pronto (produtos, categorias, cupom e ajustes). Produtos com o mesmo número são <b>substituídos</b> — preços e textos que você já mudou nesses produtos voltam ao original. Produtos novos que você cadastrou continuam.</p>
+                    <button class="btn btn-claro" data-carregar-cardapio><i class="fa-solid fa-cloud-arrow-up"></i> Carregar cardápio inicial de novo</button>
+                </div>
 
                 <div class="bloco bloco-ajuda">
                     <h2><i class="fa-solid fa-circle-question"></i> Precisa de ajuda?</h2>

@@ -363,6 +363,45 @@ async function acaoPedido(docId, acao) {
     atualizarTela();
 }
 
+// ─── CARDÁPIO INICIAL (Firebase) ─────────────────────────────────────────────
+// No Firebase o banco começa vazio: este botão envia o cardápio pronto do dados.js.
+async function carregarCardapioInicial(botao) {
+    const jaTem = produtos.length > 0;
+    const ok = await confirmar(
+        jaTem ? "Carregar o cardápio de novo?" : "Carregar o cardápio inicial?",
+        jaTem
+            ? `Vou enviar ${SEED_PRODUTOS.length} produtos. Os que tiverem o mesmo número serão substituídos e as mudanças feitas neles voltam ao original.`
+            : `Vou enviar ${SEED_PRODUTOS.length} produtos, ${SEED_CATEGORIAS.length} categorias e os ajustes da loja. Leva alguns segundos.`,
+        jaTem ? "Sim, substituir" : "Sim, carregar");
+    if (!ok) return;
+    const textoOriginal = botao.innerHTML;
+    $$("[data-carregar-cardapio]").forEach((b) => { b.disabled = true; });
+    const tarefas = [
+        ...SEED_CATEGORIAS.map((c) => () => Dados.salvar("categorias", c.id, c)),
+        ...SEED_PRODUTOS.map((p) => () => Dados.salvar("produtos", p.id, Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined)))),
+        ...SEED_CUPONS.map((c) => () => Dados.salvar("cupons", c.id, c)),
+    ];
+    // Ajustes da loja: só completa o que ainda não existe (não apaga o que já foi configurado)
+    tarefas.push(() => Dados.salvar("configuracoes", "geral", { ...SEED_CONFIG, ...(jaTem ? config : {}) }));
+    let feitas = 0;
+    try {
+        for (let i = 0; i < tarefas.length; i += 20) {
+            await Promise.all(tarefas.slice(i, i + 20).map((t) => t()));
+            feitas = Math.min(tarefas.length, i + 20);
+            botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Enviando ${feitas} de ${tarefas.length}...`;
+        }
+        await carregarTudo();
+        avisar("Cardápio carregado! Já aparece no site.");
+        atualizarTela();
+    } catch (e) {
+        console.error(e);
+        avisar("Não consegui enviar tudo. Confira a internet e se as regras do Firestore foram publicadas, e tente de novo.", false);
+    } finally {
+        $$("[data-carregar-cardapio]").forEach((b) => { b.disabled = false; });
+        botao.innerHTML = textoOriginal;
+    }
+}
+
 // ─── ESTOQUE / PRODUTOS ──────────────────────────────────────────────────────
 // Busca sem se preocupar com acento nem maiúscula: "pao" acha "Pão"
 const semAcento = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -422,6 +461,7 @@ function renderEstoque() {
     const semCat = lista.filter((p) => !categorias.some((c) => c.id === p.categoria));
     if (semCat.length) grupos.push({ c: { nome: "Sem categoria" }, itens: semCat });
     $("estoque-contagem").textContent = lista.length === 1 ? "1 produto" : `${lista.length} produtos`;
+    $("estoque-vazio").hidden = MODO_DEMO || produtos.length > 0;
 
     $("lista-estoque").innerHTML = grupos.length ? grupos.map((g) => `
         <p class="dia-cabecalho"><span>${escaparHtml(g.c.nome)}</span><span>${g.itens.length}</span></p>
@@ -723,6 +763,7 @@ function renderAjustes() {
     $("aj-titulo").value = config.heroTitulo || "";
     $("aj-subtitulo").value = config.heroSubtitulo || "";
     $("aj-sobre").value = config.sobreTexto || "";
+    $("aj-banco").hidden = MODO_DEMO;
     $("aj-natal").checked = config.vitrineNatal !== false;
     $("aj-natal-titulo").value = config.natalTitulo || "";
     $("aj-natal-aviso").value = config.natalAviso || "";
@@ -811,6 +852,8 @@ function ligarEventos() {
         if (ir) { irPara(ir.dataset.ir); return; }
         const est = e.target.closest("[data-estoque]");
         if (est) { await mudarEstoque(est.dataset.estoque, Number(est.dataset.delta)); atualizarTela(); return; }
+        const cc = e.target.closest("[data-carregar-cardapio]");
+        if (cc) { carregarCardapioInicial(cc); return; }
         const ed = e.target.closest("[data-editar]");
         if (ed) { abrirProduto(ed.dataset.editar); return; }
         const ap = e.target.closest("[data-apagar-mov]");
