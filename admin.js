@@ -106,7 +106,11 @@ function atualizarTela() {
     render[paginaAtual]?.();
 }
 
-function irPara(pagina) {
+function irPara(pagina, guardarHistorico = true) {
+    // Guarda no histórico do navegador: o "voltar" do celular/tablet volta para a tela anterior do painel
+    if (guardarHistorico && pagina !== paginaAtual) {
+        try { history.pushState({ pagina }, "", "#" + pagina); } catch (e) { /* ignora */ }
+    }
     paginaAtual = pagina;
     $$(".pagina").forEach((s) => s.classList.toggle("ativa", s.id === "pg-" + pagina));
     $$("#menu button").forEach((b) => b.classList.toggle("ativo", b.dataset.pagina === pagina || (pagina === "relatorio" || pagina === "ajustes") && b.dataset.pagina === "mais" && window.innerWidth <= 900));
@@ -1045,6 +1049,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     $("login-tf").href = `https://wa.me/${TF_SOLUTIONS_WHATSAPP}`;
     ligarEventos();
+    // Botão "Voltar ao início" no topo de todas as telas (menos o Início)
+    $$("section.pagina").forEach((s) => {
+        if (s.id === "pg-inicio") return;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn-voltar";
+        b.dataset.ir = "inicio";
+        b.innerHTML = `<i class="fa-solid fa-arrow-left"></i> Voltar ao início`;
+        s.prepend(b);
+    });
+    try { history.replaceState({ pagina: "inicio" }, "", location.pathname + location.search); } catch (e) { /* ignora */ }
+    window.addEventListener("popstate", (e) => {
+        if (janelaAberta) fecharJanela();
+        if ($("app").hidden) return;
+        irPara((e.state && e.state.pagina) || "inicio", false);
+    });
     let jaAbriu = false;
     const erroLogin = (texto) => { $("login-erro").textContent = texto; $("login-erro").hidden = false; };
     const entrar = async () => {

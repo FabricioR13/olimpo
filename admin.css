@@ -319,7 +319,7 @@ img { display: block; max-width: 100%; }
 .sugestao b { color: var(--ouro-escuro); font-size: .95rem; white-space: nowrap; }
 .sugestao-vazia { padding: .7rem .8rem; color: var(--suave); }
 .busca-linha { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-bottom: .4rem; }
-.busca-linha select { flex: 1; max-width: 340px; padding: .6rem .8rem; border-radius: 12px; border: 2px solid var(--linha); background: var(--branco); font-weight: 700; color: var(--texto); }
+.busca-linha select { flex: 1; min-width: 0; max-width: 340px; padding: .6rem .8rem; border-radius: 12px; border: 2px solid var(--linha); background: var(--branco); font-weight: 700; color: var(--texto); }
 #estoque-contagem { color: var(--suave); font-weight: 700; font-size: .95rem; white-space: nowrap; }
 
 /* Post do dia */
@@ -440,3 +440,8 @@ img { display: block; max-width: 100%; }
 .post-todos input:indeterminate + .post-check i::before { content: "\f068"; }
 .post-todos input:focus-visible + .post-check { outline: 3px solid var(--ouro); }
 .post-todos input:disabled ~ span { opacity: .5; }
+
+/* Botão "Voltar ao início" no topo das telas */
+.btn-voltar { display: inline-flex; align-items: center; gap: .5rem; margin: 0 0 .9rem; padding: .6rem 1rem .6rem .8rem; border-radius: 999px; border: 2px solid var(--linha); background: var(--branco); color: var(--cacau); font-weight: 800; font-size: 1rem; box-shadow: var(--sombra); }
+.btn-voltar i { color: var(--ouro-escuro); }
+.btn-voltar:active { transform: scale(.97); }
