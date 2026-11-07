@@ -101,6 +101,7 @@ const SEED_PRODUTOS = [
     p(37, "paes", "Pão recheado de carne de panela com cheddar", "Reveja seu conceito de pão recheado, pão todo com chimichuri e orégano e recheio de carne de panela com cheddar com mais de meio kg", "if-pao-recheado-de-carne-de-panela-com-cheddar.jpg", 27.8, 4),
     p(38, "paes", "Pão recheado com frango e requeijão", "Reveja seu conceito de pão recheado, pão todo com chimichuri e orégano e recheio de frango e requeijão com mais de meio kg", "if-pao-recheado-com-frango-e-requeijao.jpg", 27.8, 4),
     p(39, "paes", "Pão recheado de calabresa com queijo", "Reveja seu conceito de pão recheado, pão todo com chimichuri e orégano e calabresa picada , recheado com queijo com mais de meio kg", "if-pao-recheado-de-calabresa-com-queijo.jpg", 27.8, 4),
+    p(205, "paes", "Pão recheado de presunto com 4 queijos", "Reveja seu conceito de pão recheado, pão todo com chimichurri e orégano, recheado com presunto e 4 queijos.", "if-pao-recheado-de-calabresa-com-queijo.jpg", 17, 4),
     // Cuca alemã
     p(40, "cuca-alema", "Cuca Duo chocolate com creme de avelã (Nutella)", "A verdadeira cuca alemã, cobertura decorativa de creme de avelã (Nutella) e explodindo recheio de chocolate branco e preto", "if-cuca-duo-chocolate-com-creme-de-avela-nutella.jpg", 19.5, 4),
     p(41, "cuca-alema", "Cuca de mumu", "Cuca receita Original alemã, explodindo recheio de mumu, de pura tentação", "if-cuca-de-mumu.jpg", 19, 4),
@@ -114,6 +115,7 @@ const SEED_PRODUTOS = [
     p(48, "salgados", "Esfiha de frango", "Esfiha de frango do tamanho da sua fome, super recheada, com molho e recheio artesanal", "if-esfiha-de-frango.jpg", 11, 4),
     p(49, "salgados", "Hambúrguer de forno gigante", "Hambúrguer de forno, com um hambúrguer de carne feito totalmente artesanal e muito queijo e requeijão, salgado do tamanho da sua fome", "if-hamburguer-de-forno-gigante.jpg", 14.5, 4),
     p(50, "salgados", "Torta salgada de carne de panela com cheddar", "Torta salgada, tipo um bolo salgado, recheado de carne de panela com cheddar, massa fofinha e leve com um recheio totalmente artesanal", "if-torta-salgada-de-carne-de-panela-com-cheddar.jpg", 17, 4),
+    p(206, "salgados", "Fatia de torta fria de frango", "Fatia de torta fria de frango com maionese artesanal. Aprox. 300g a fatia.", "natal-torta-fria.jpg", 12, 4),
     // Pastel de forno
     p(51, "pastel-de-forno", "Pastel de forno de Frango com requeijão", "Pastel de forno de frango com requeijão", "if-pastel-de-forno-de-frango-com-requeijao.jpg", 10, 4),
     p(52, "pastel-de-forno", "Pastel de forno de Brócolis com ricota", "", "if-pastel-de-forno-de-brocolis-com-ricota.jpg", 10, 4),
