@@ -429,3 +429,5 @@ img { display: block; max-width: 100%; }
     .area-impressao th, .area-impressao td { border-bottom: 1px solid #ccc; padding: 5px; text-align: left; }
     .area-impressao td.v { text-align: right; }
 }
+
+.login-esqueci { background: none; border: none; color: var(--ouro-escuro); font-weight: 800; font-size: .98rem; text-decoration: underline; padding: .4rem; margin-top: .3rem; }

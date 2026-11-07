@@ -21,7 +21,7 @@
         <div class="login-caixa">
             <img src="assets/logo-olimpo.png" alt="Olimpo" class="login-logo">
             <h1>Painel da Olimpo</h1>
-            <p>Bem-vinda! Digite sua senha para entrar.</p>
+            <p id="login-texto">Bem-vinda! Digite sua senha para entrar.</p>
             <div class="campo" id="campo-email">
                 <label for="login-email">E-mail</label>
                 <input type="email" id="login-email" autocomplete="username">
@@ -32,6 +32,7 @@
             </div>
             <p class="login-erro" id="login-erro" hidden>Senha incorreta. Tente de novo.</p>
             <button class="btn btn-ouro btn-grande" id="login-entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+            <button type="button" class="login-esqueci" id="login-esqueci" hidden>Esqueci minha senha</button>
             <p class="login-dica" id="login-dica" hidden>Demonstração: a senha é <strong>1234</strong></p>
             <a class="login-tf" href="#" id="login-tf" target="_blank" rel="noopener"><img src="assets/tf-solutions-logo.jpg" alt=""> Sistema TF Solutions</a>
         </div>

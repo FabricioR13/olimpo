@@ -456,6 +456,7 @@ const DadosDemo = {
     },
     async sair() { sessionStorage.removeItem("olimpo_logado"); },
     estaLogado(cb) { cb(sessionStorage.getItem("olimpo_logado") === "1"); },
+    async redefinirSenha() {},
     resetar() { localStorage.removeItem(CHAVE_DEMO); },
 };
 
@@ -490,13 +491,39 @@ const DadosFirebase = {
         this._init();
         await this._db.collection(col).doc(String(id)).delete();
     },
+    // Só entra no painel quem está na coleção "admins" (um documento por e-mail, em
+    // minúsculas, criado pelo Console do Firebase). As regras do banco (regras.md) fazem
+    // a mesma conferência, então mesmo burlando esta tela não dá para mexer em nada.
+    async _temAcesso(user) {
+        try {
+            const d = await this._db.collection("admins").doc(String(user.email || "").toLowerCase()).get();
+            return d.exists;
+        } catch (e) {
+            // Regras antigas (sem a lista "admins") recusam a leitura: segue liberado até
+            // as regras novas serem publicadas. Com elas, quem não está na lista lê "não existe".
+            return !!e && e.code === "permission-denied";
+        }
+    },
     async entrar(email, senha) {
         this._init();
-        await firebase.auth().signInWithEmailAndPassword(email, senha);
+        const cred = await firebase.auth().signInWithEmailAndPassword(email, senha);
+        if (!(await this._temAcesso(cred.user))) {
+            await firebase.auth().signOut();
+            const erro = new Error("Sem acesso ao painel"); erro.code = "sem-acesso"; throw erro;
+        }
         return true;
     },
     async sair() { this._init(); await firebase.auth().signOut(); },
-    estaLogado(cb) { this._init(); firebase.auth().onAuthStateChanged((u) => cb(!!u)); },
+    estaLogado(cb) {
+        this._init();
+        firebase.auth().onAuthStateChanged(async (u) => {
+            if (!u) return cb(false);
+            if (await this._temAcesso(u)) return cb(true);
+            await firebase.auth().signOut();
+            cb(false);
+        });
+    },
+    async redefinirSenha(email) { this._init(); await firebase.auth().sendPasswordResetEmail(email); },
     resetar() {},
 };
 

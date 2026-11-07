@@ -1038,15 +1038,41 @@ async function abrirApp() {
 document.addEventListener("DOMContentLoaded", () => {
     $("campo-email").hidden = MODO_DEMO;
     $("login-dica").hidden = !MODO_DEMO;
+    $("login-esqueci").hidden = MODO_DEMO;
+    if (!MODO_DEMO) {
+        $("login-texto").textContent = "Bem-vinda! Entre com seu e-mail e senha.";
+        $("login-senha").removeAttribute("inputmode");
+    }
     $("login-tf").href = `https://wa.me/${TF_SOLUTIONS_WHATSAPP}`;
     ligarEventos();
+    let jaAbriu = false;
+    const erroLogin = (texto) => { $("login-erro").textContent = texto; $("login-erro").hidden = false; };
     const entrar = async () => {
         $("login-erro").hidden = true;
-        try { await Dados.entrar($("login-email").value.trim(), $("login-senha").value); abrirApp(); }
-        catch { $("login-erro").hidden = false; $("login-senha").select(); }
+        try {
+            await Dados.entrar($("login-email").value.trim(), $("login-senha").value);
+            if (!jaAbriu) { jaAbriu = true; abrirApp(); }
+        } catch (e) {
+            if (e && e.code === "sem-acesso") erroLogin("Este e-mail não tem acesso ao painel. Fale com a TF Solutions.");
+            else if (e && e.code === "auth/too-many-requests") erroLogin("Muitas tentativas. Espere alguns minutos e tente de novo.");
+            else if (e && e.code === "auth/network-request-failed") erroLogin("Sem internet. Confira a conexão e tente de novo.");
+            else erroLogin(MODO_DEMO ? "Senha incorreta. Tente de novo." : "E-mail ou senha incorretos. Tente de novo.");
+            $("login-senha").select();
+        }
     };
     $("login-entrar").addEventListener("click", entrar);
     $("login-senha").addEventListener("keydown", (e) => { if (e.key === "Enter") entrar(); });
-    let jaAbriu = false;
+    $("login-email").addEventListener("keydown", (e) => { if (e.key === "Enter") $("login-senha").focus(); });
+    $("login-esqueci").addEventListener("click", async () => {
+        const email = $("login-email").value.trim();
+        if (!email) { erroLogin("Digite seu e-mail acima e toque de novo em \"Esqueci minha senha\"."); $("login-email").focus(); return; }
+        try {
+            await Dados.redefinirSenha(email);
+            $("login-erro").hidden = true;
+            avisar("Pronto! Enviamos um link para criar uma senha nova. Veja seu e-mail (e a caixa de spam).");
+        } catch (e) {
+            erroLogin("Não consegui enviar o e-mail. Confira se o e-mail está certo.");
+        }
+    });
     Dados.estaLogado((logado) => { if (logado && !jaAbriu) { jaAbriu = true; abrirApp(); } });
 });
