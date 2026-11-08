@@ -530,6 +530,8 @@ function abrirProduto(id) {
     $("jp-estoque").value = controlaEstoque(p) ? p.estoque : "";
     $("jp-minimo").value = p.estoqueMinimo ?? 3;
     $("jp-sabores").value = (p.opcaoInclusa?.opcoes || []).join("\n");
+    $("jp-sabores-titulo").value = p.opcaoInclusa?.label && p.opcaoInclusa.label !== "Escolha o sabor" ? p.opcaoInclusa.label : "";
+    $("jp-tamanhos-titulo").value = p.tamanhosLabel || "";
     $("jp-tamanhos").value = (p.tamanhos || []).map((t) => `${t.nome} | ${String(t.preco).replace(".", ",")}`).join("\n");
     $("jp-encomenda").checked = p.disponibilidade === "encomenda";
     $("jp-prazo").value = p.prazoDias || "";
@@ -597,7 +599,8 @@ async function salvarProduto() {
         id, nome, preco, categoria: $("jp-categoria").value, descricao: $("jp-descricao").value.trim(),
         estoque: $("jp-estoque").value === "" ? null : Math.max(0, Number($("jp-estoque").value)),
         estoqueMinimo: Number($("jp-minimo").value) || 0,
-        opcaoInclusa: sabores.length ? { label: produtoEditando?.opcaoInclusa?.label || "Escolha o sabor", opcoes: sabores } : null,
+        opcaoInclusa: sabores.length ? { label: $("jp-sabores-titulo").value.trim() || "Escolha o sabor", opcoes: sabores } : null,
+        tamanhosLabel: $("jp-tamanhos-titulo").value.trim() || null,
         tamanhos: tamanhos.length > 1 ? tamanhos : null,
         disponibilidade: $("jp-encomenda").checked ? "encomenda" : "pronta",
         prazoDias: $("jp-encomenda").checked ? Number($("jp-prazo").value) || null : null,

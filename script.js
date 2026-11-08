@@ -278,6 +278,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const tam = tamanhosDe(prod);
         $("mp-grupo-tamanho").hidden = tam.length < 2;
+        $("mp-rotulo-tamanho").textContent = prod.tamanhosLabel || "Escolha o tamanho";
         $("mp-tamanhos").innerHTML = tam.map((t, i) => `
             <label class="opcao"><input type="radio" name="mp-tamanho" value="${i}" ${i === 0 ? "checked" : ""}>
             <span>${escaparHtml(t.nome)}</span><span>${formatarMoeda(t.preco)}</span></label>`).join("");
