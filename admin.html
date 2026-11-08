@@ -426,10 +426,21 @@
         </div>
         <details class="mais-opcoes">
             <summary>Sabores, tamanhos e outras opções</summary>
-            <div class="campo"><label for="jp-sabores-titulo">Título da escolha <small>(o que a cliente vê no site)</small></label><input type="text" id="jp-sabores-titulo" placeholder="Escolha o sabor"></div>
-            <div class="campo"><label for="jp-sabores">Sabores / recheios / caldas <small>(uma opção por linha)</small></label><textarea id="jp-sabores" rows="3" placeholder="Morango com ninho&#10;Prestígio"></textarea></div>
-            <div class="campo"><label for="jp-tamanhos-titulo">Título dos tamanhos <small>(o que a cliente vê no site)</small></label><input type="text" id="jp-tamanhos-titulo" placeholder="Escolha o tamanho"></div>
-            <div class="campo"><label for="jp-tamanhos">Tamanhos com preço diferente <small>(um por linha: nome - preço)</small></label><textarea id="jp-tamanhos" rows="2" placeholder="Média - 45&#10;Grande - 90"></textarea><small>No site, a cliente escolhe o tamanho ao tocar no produto, e o preço muda sozinho.</small></div>
+            <div class="grupo-linhas">
+                <p class="grupo-titulo">Tamanhos com preço diferente</p>
+                <p class="grupo-ajuda">Ex.: Média R$ 45 e Grande R$ 90. No site, a cliente escolhe e o preço muda sozinho. Se o produto tem um preço só, deixe vazio.</p>
+                <div class="campo"><label for="jp-tamanhos-titulo">Pergunta que aparece no site</label><input type="text" id="jp-tamanhos-titulo" placeholder="Escolha o tamanho"></div>
+                <div class="linhas-cabecalho"><span>Nome</span><span>Preço (R$)</span><span></span></div>
+                <div id="jp-tamanhos-linhas"></div>
+                <button type="button" class="btn btn-claro btn-pequeno btn-add-linha" data-add-linha="tamanho"><i class="fa-solid fa-plus"></i> Adicionar tamanho</button>
+            </div>
+            <div class="grupo-linhas">
+                <p class="grupo-titulo">Sabores, recheios ou caldas</p>
+                <p class="grupo-ajuda">Cada caixinha vira uma opção para a cliente marcar (ela escolhe uma). Se o produto não tem escolha, deixe vazio.</p>
+                <div class="campo"><label for="jp-sabores-titulo">Pergunta que aparece no site</label><input type="text" id="jp-sabores-titulo" placeholder="Escolha o sabor"></div>
+                <div id="jp-sabores-linhas"></div>
+                <button type="button" class="btn btn-claro btn-pequeno btn-add-linha" data-add-linha="sabor"><i class="fa-solid fa-plus"></i> Adicionar opção</button>
+            </div>
             <label class="interruptor"><input type="checkbox" id="jp-encomenda"><span class="trilha"></span><span><strong>Só sob encomenda</strong></span></label>
             <div class="campo" id="jp-prazo-campo" hidden><label for="jp-prazo">Prazo (dias)</label><input type="number" id="jp-prazo" min="0" inputmode="numeric"></div>
             <label class="interruptor"><input type="checkbox" id="jp-destaque"><span class="trilha"></span><span><strong>Mostrar em "Os mais pedidos"</strong></span></label>

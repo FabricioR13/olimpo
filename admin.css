@@ -454,3 +454,17 @@ img { display: block; max-width: 100%; }
 .caixinha { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .65rem; border: 2px solid var(--linha); border-radius: 999px; background: var(--branco); font-size: .88rem; font-weight: 800; color: var(--suave); cursor: pointer; user-select: none; }
 .caixinha input { width: 18px; height: 18px; accent-color: var(--verde); margin: 0; }
 .caixinha:has(input:checked) { border-color: var(--verde); background: var(--verde-claro); color: var(--verde); }
+
+/* Tamanhos e sabores em caixinhas */
+.grupo-linhas { border: 2px solid var(--linha); border-radius: 14px; padding: .8rem .8rem .7rem; margin: .4rem 0 .9rem; background: var(--creme); }
+.grupo-titulo { font-weight: 800; font-size: 1.02rem; margin-bottom: .15rem; }
+.grupo-ajuda { color: var(--suave); font-size: .88rem; margin-bottom: .6rem; }
+.grupo-linhas .campo { margin-bottom: .6rem; }
+.linhas-cabecalho { display: grid; grid-template-columns: 1fr 110px 40px; gap: .5rem; font-size: .82rem; font-weight: 800; color: var(--suave); padding: 0 .1rem .25rem; }
+.linha-editavel { display: grid; grid-template-columns: 1fr 40px; gap: .5rem; margin-bottom: .45rem; }
+.linha-tamanho { grid-template-columns: 1fr 110px 40px; }
+.linha-editavel input { width: 100%; padding: .7rem .8rem; border-radius: 10px; border: 2px solid var(--linha); background: var(--branco); outline: none; font-size: 1rem; }
+.linha-editavel input:focus { border-color: var(--ouro); box-shadow: 0 0 0 3px rgba(201, 151, 46, .2); }
+.btn-remover-linha { width: 40px; height: 44px; align-self: center; border-radius: 10px; border: 2px solid #f0cfc9; background: var(--branco); color: var(--vermelho); }
+.btn-add-linha { margin-top: .15rem; }
+@media (max-width: 480px) { .linhas-cabecalho, .linha-tamanho { grid-template-columns: 1fr 76px 40px; gap: .4rem; } .linha-editavel input { padding: .65rem .6rem; } }

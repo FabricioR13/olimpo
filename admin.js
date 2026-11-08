@@ -406,6 +406,27 @@ async function carregarCardapioInicial(botao) {
     }
 }
 
+// ─── TAMANHOS E SABORES EM CAIXINHAS ─────────────────────────────────────────
+// Uma linha por tamanho (nome + preço) e uma caixinha por sabor, com botão para
+// adicionar e remover — mais fácil de preencher do que escrever "nome | preço".
+const linhaTamanhoHtml = (t = {}) => `
+    <div class="linha-editavel linha-tamanho">
+        <input type="text" class="lt-nome" placeholder="Ex.: Média" value="${escaparHtml(t.nome || "")}" aria-label="Nome do tamanho">
+        <input type="text" class="lt-preco" placeholder="0,00" inputmode="decimal" value="${t.preco !== undefined && t.preco !== "" ? String(t.preco).replace(".", ",") : ""}" aria-label="Preço">
+        <button type="button" class="btn-remover-linha" data-remover-linha aria-label="Remover"><i class="fa-solid fa-xmark"></i></button>
+    </div>`;
+const linhaSaborHtml = (s = "") => `
+    <div class="linha-editavel linha-sabor">
+        <input type="text" placeholder="Ex.: Chocolate" value="${escaparHtml(s)}" aria-label="Opção">
+        <button type="button" class="btn-remover-linha" data-remover-linha aria-label="Remover"><i class="fa-solid fa-xmark"></i></button>
+    </div>`;
+function renderLinhasTamanho(lista) {
+    $("jp-tamanhos-linhas").innerHTML = (lista.length ? lista : [{}, {}]).map(linhaTamanhoHtml).join("");
+}
+function renderLinhasSabor(lista) {
+    $("jp-sabores-linhas").innerHTML = (lista.length ? lista : [""]).map(linhaSaborHtml).join("");
+}
+
 // ─── SEM GLÚTEN / SEM LACTOSE ────────────────────────────────────────────────
 // Ficam na lista "tags" do produto: aparecem como selo no site e na categoria
 // "Sem glúten e sem lactose" do catálogo.
@@ -529,10 +550,11 @@ function abrirProduto(id) {
     $("jp-descricao").value = p.descricao || "";
     $("jp-estoque").value = controlaEstoque(p) ? p.estoque : "";
     $("jp-minimo").value = p.estoqueMinimo ?? 3;
-    $("jp-sabores").value = (p.opcaoInclusa?.opcoes || []).join("\n");
+    renderLinhasTamanho(p.tamanhos || []);
+    document.querySelector("#jn-produto .mais-opcoes").open = !!(p.tamanhos?.length || p.opcaoInclusa?.opcoes?.length);
+    renderLinhasSabor(p.opcaoInclusa?.opcoes || []);
     $("jp-sabores-titulo").value = p.opcaoInclusa?.label && p.opcaoInclusa.label !== "Escolha o sabor" ? p.opcaoInclusa.label : "";
     $("jp-tamanhos-titulo").value = p.tamanhosLabel || "";
-    $("jp-tamanhos").value = (p.tamanhos || []).map((t) => `${t.nome} | ${String(t.preco).replace(".", ",")}`).join("\n");
     $("jp-encomenda").checked = p.disponibilidade === "encomenda";
     $("jp-prazo").value = p.prazoDias || "";
     $("jp-prazo-campo").hidden = !$("jp-encomenda").checked;
@@ -588,12 +610,16 @@ async function salvarProduto() {
     const preco = Number(String($("jp-preco").value).replace(",", "."));
     if (!nome) { avisar("Coloque o nome do produto.", false); $("jp-nome").focus(); return; }
     if (!(preco >= 0) || $("jp-preco").value === "") { avisar("Coloque o preço.", false); $("jp-preco").focus(); return; }
-    const sabores = $("jp-sabores").value.split("\n").map((s) => s.trim()).filter(Boolean);
-    // Aceita "Média - 45", "Média | 45", "Média: 45" ou "Grande R$ 90" (o número do fim é o preço)
-    const tamanhos = $("jp-tamanhos").value.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
-        const m = l.match(/^(.*?)[\s|:=–—-]*(?:R\$)?\s*(\d+(?:[.,]\d{1,2})?)\s*$/i);
-        return m && m[1].trim() ? { nome: m[1].replace(/[\s|:=–—-]+$/, "").trim(), preco: Number(m[2].replace(",", ".")) || 0 } : null;
-    }).filter(Boolean);
+    const sabores = $$("#jp-sabores-linhas input").map((i) => i.value.trim()).filter(Boolean);
+    const tamanhos = [];
+    for (const linha of $$("#jp-tamanhos-linhas .linha-editavel")) {
+        const nomeT = linha.querySelector(".lt-nome").value.trim();
+        const precoTxt = linha.querySelector(".lt-preco").value.trim();
+        if (!nomeT && !precoTxt) continue;
+        if (!nomeT) { avisar("Falta o nome de um tamanho.", false); linha.querySelector(".lt-nome").focus(); return; }
+        if (!precoTxt) { avisar(`Falta o preço de "${nomeT}".`, false); linha.querySelector(".lt-preco").focus(); return; }
+        tamanhos.push({ nome: nomeT, preco: Number(precoTxt.replace(/[^\d,.]/g, "").replace(",", ".")) || 0 });
+    }
     const id = produtoEditando ? produtoEditando.id : Math.max(0, ...produtos.map((x) => x.id)) + 1;
     const dados = {
         id, nome, preco, categoria: $("jp-categoria").value, descricao: $("jp-descricao").value.trim(),
@@ -879,6 +905,21 @@ function ligarEventos() {
         if (ir) { irPara(ir.dataset.ir); return; }
         const est = e.target.closest("[data-estoque]");
         if (est) { await mudarEstoque(est.dataset.estoque, Number(est.dataset.delta)); atualizarTela(); return; }
+        const add = e.target.closest("[data-add-linha]");
+        if (add) {
+            const tipo = add.dataset.addLinha;
+            const cont = $(tipo === "tamanho" ? "jp-tamanhos-linhas" : "jp-sabores-linhas");
+            cont.insertAdjacentHTML("beforeend", tipo === "tamanho" ? linhaTamanhoHtml() : linhaSaborHtml());
+            cont.lastElementChild.querySelector("input").focus();
+            return;
+        }
+        const rem = e.target.closest("[data-remover-linha]");
+        if (rem) {
+            const linha = rem.closest(".linha-editavel"), cont = linha.parentElement;
+            if (cont.children.length > 1) linha.remove();
+            else linha.querySelectorAll("input").forEach((i) => { i.value = ""; });
+            return;
+        }
         const cc = e.target.closest("[data-carregar-cardapio]");
         if (cc) { carregarCardapioInicial(cc); return; }
         const ed = e.target.closest("[data-editar]");
