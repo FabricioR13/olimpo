@@ -1,4 +1,4 @@
-# Olimpo Especiarias — Catálogo + Painel
+# Especiarias do Olimpo — Catálogo + Painel
 
 Catálogo online para a **Olimpo — Delícias de Sabores** (bolos, doces, pães caseiros e congelados), desenvolvido pela **TF Solutions** a partir da estrutura do catálogo Mamona's Açaí.
 

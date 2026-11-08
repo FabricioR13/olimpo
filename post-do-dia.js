@@ -152,7 +152,7 @@ function postDesenharLogo() {
 // ─── Texto da mensagem ───────────────────────────────────────────────────────
 function postMontarTexto() {
     const itens = postOrdenar(produtos.filter(postNoPost));
-    const nomeLoja = config.nomeLoja || "Olimpo";
+    const nomeLoja = config.nomeLoja || "Especiarias do Olimpo";
     const linhas = [`✨ *${nomeLoja} — ${$("post-frase").value.trim() || "Disponível hoje"}* ✨`, `📅 ${postDataExtenso()}`, ""];
     if (!itens.length) linhas.push("Hoje estamos sem produtos a pronta entrega. Faça sua encomenda! 💛", "");
     categorias.concat([{ id: null, nome: "Outros" }]).forEach((c) => {

@@ -84,7 +84,7 @@ img { display: block; max-width: 100%; }
 .topo { position: sticky; top: 0; z-index: 30; display: flex; justify-content: space-between; align-items: center; padding: .55rem 1rem; background: var(--cacau); border-bottom: 3px solid var(--ouro); }
 .topo-marca { display: flex; align-items: center; gap: .7rem; }
 .topo-marca img { width: 48px; height: 48px; border-radius: 50%; box-shadow: 0 0 0 2px var(--ouro); }
-.topo-marca strong { display: block; font-family: var(--fonte-titulo); color: var(--ouro-claro); font-size: 1.25rem; letter-spacing: .06em; line-height: 1.1; }
+.topo-marca strong { display: block; font-family: var(--fonte-titulo); color: var(--ouro-claro); font-size: 1.15rem; letter-spacing: .03em; line-height: 1.1; }
 .topo-marca small { color: #cdbb9f; font-size: .85rem; }
 .topo-acoes { display: flex; gap: .4rem; }
 .topo-btn { display: flex; align-items: center; gap: .4rem; background: var(--cacau-2); border: 1px solid #4b3a2f; color: var(--creme); padding: .55rem .8rem; border-radius: 12px; font-size: .9rem; font-weight: 700; text-decoration: none; }
@@ -445,3 +445,5 @@ img { display: block; max-width: 100%; }
 .btn-voltar { display: inline-flex; align-items: center; gap: .5rem; margin: 0 0 .9rem; padding: .6rem 1rem .6rem .8rem; border-radius: 999px; border: 2px solid var(--linha); background: var(--branco); color: var(--cacau); font-weight: 800; font-size: 1rem; box-shadow: var(--sombra); }
 .btn-voltar i { color: var(--ouro-escuro); }
 .btn-voltar:active { transform: scale(.97); }
+.login-sub { color: var(--suave); font-weight: 700; margin: -.3rem 0 .6rem; }
+@media (max-width: 600px) { .topo-marca strong { font-size: .98rem; letter-spacing: .01em; } }

@@ -300,7 +300,7 @@ const SEED_FRETE = [
 ];
 
 const SEED_CONFIG = {
-    nomeLoja: "Olimpo Especiarias",
+    nomeLoja: "Especiarias do Olimpo",
     nomeDona: "Dani",
     whatsapp: "5551999999999",
     heroTag: "Feito em casa, com carinho",
@@ -323,7 +323,7 @@ const SEED_CONFIG = {
     freteGratisAcima: 80,
     fretes: SEED_FRETE,
     instagram: "",
-    sobreTexto: "Na Olimpo cada receita é feita em casa, em pequenas fornadas, com ingredientes escolhidos a dedo. Do pão de leite fofinho ao bolo de pote, tudo sai do forno direto para a sua mesa.",
+    sobreTexto: "Na Especiarias do Olimpo cada receita é feita em casa, em pequenas fornadas, com ingredientes escolhidos a dedo. Do pão de leite fofinho ao bolo de pote, tudo sai do forno direto para a sua mesa.",
 };
 
 const SEED_CUPONS = [
