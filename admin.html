@@ -427,11 +427,15 @@
         <details class="mais-opcoes">
             <summary>Sabores, tamanhos e outras opções</summary>
             <div class="campo"><label for="jp-sabores">Sabores / recheios <small>(um por linha)</small></label><textarea id="jp-sabores" rows="3" placeholder="Morango com ninho&#10;Prestígio"></textarea></div>
-            <div class="campo"><label for="jp-tamanhos">Tamanhos com preço diferente <small>(um por linha: nome | preço)</small></label><textarea id="jp-tamanhos" rows="2" placeholder="450g | 20&#10;790g | 26,50"></textarea></div>
+            <div class="campo"><label for="jp-tamanhos">Tamanhos com preço diferente <small>(um por linha: nome - preço)</small></label><textarea id="jp-tamanhos" rows="2" placeholder="Média - 45&#10;Grande - 90"></textarea><small>No site, a cliente escolhe o tamanho ao tocar no produto, e o preço muda sozinho.</small></div>
             <label class="interruptor"><input type="checkbox" id="jp-encomenda"><span class="trilha"></span><span><strong>Só sob encomenda</strong></span></label>
             <div class="campo" id="jp-prazo-campo" hidden><label for="jp-prazo">Prazo (dias)</label><input type="number" id="jp-prazo" min="0" inputmode="numeric"></div>
             <label class="interruptor"><input type="checkbox" id="jp-destaque"><span class="trilha"></span><span><strong>Mostrar em "Os mais pedidos"</strong></span></label>
         </details>
+        <div class="restricoes restricoes-form">
+            <label class="caixinha"><input type="checkbox" id="jp-sem-gluten"><span>Sem glúten</span></label>
+            <label class="caixinha"><input type="checkbox" id="jp-sem-lactose"><span>Sem lactose</span></label>
+        </div>
         <label class="interruptor"><input type="checkbox" id="jp-ativo"><span class="trilha"></span><span><strong>Aparece no site</strong></span></label>
         <div class="janela-botoes">
             <button class="btn btn-claro btn-perigo" id="jp-excluir"><i class="fa-solid fa-trash"></i> Apagar</button>

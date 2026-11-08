@@ -134,10 +134,20 @@ document.addEventListener("DOMContentLoaded", async () => {
             </article>`;
     };
 
+    // Categoria "Sem glúten e sem lactose": junta os produtos marcados no painel
+    // (eles continuam também na categoria de origem).
+    const CAT_RESTRICOES = { id: "sem-gluten-lactose", nome: "Sem glúten e sem lactose", icone: "fa-leaf" };
+    const semAcentoLoja = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const temRestricao = (x) => (x.tags || []).some((t) => ["sem gluten", "sem lactose"].includes(semAcentoLoja(t)));
+    const categoriasLoja = () => {
+        // Só mostra categorias que têm produto no site (ex.: Bebidas desligada some do menu)
+        const comProduto = categorias.filter((c) => produtos.some((x) => x.categoria === c.id));
+        return produtos.some(temRestricao) ? [CAT_RESTRICOES, ...comProduto] : comProduto;
+    };
     const renderChips = () => {
         $("chips").innerHTML =
             `<button class="chip ${categoriaAtiva ? "" : "ativo"}" data-cat="">Tudo</button>` +
-            categorias.map((c) => `<button class="chip ${categoriaAtiva === c.id ? "ativo" : ""}" data-cat="${c.id}"><i class="fa-solid ${c.icone || "fa-tag"}" aria-hidden="true"></i> ${escaparHtml(c.nome)}</button>`).join("");
+            categoriasLoja().map((c) => `<button class="chip ${categoriaAtiva === c.id ? "ativo" : ""}" data-cat="${c.id}"><i class="fa-solid ${c.icone || "fa-tag"}" aria-hidden="true"></i> ${escaparHtml(c.nome)}</button>`).join("");
     };
 
     const renderCatalogo = () => {
@@ -152,12 +162,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         $("trilho-destaques").innerHTML = destaques.map(htmlCard).join("");
 
         let total = 0;
-        $("lista-categorias").innerHTML = categorias
+        $("lista-categorias").innerHTML = categoriasLoja()
             .filter((c) => !categoriaAtiva || c.id === categoriaAtiva)
+            .filter((c) => c.id !== CAT_RESTRICOES.id || categoriaAtiva === c.id)
             .map((c) => {
                 // Disponíveis primeiro, os que acabaram vão pro fim
                 const semFoto = (x) => /foto-em-breve/.test(x.imagem || "") ? 1 : 0;
-                const lista = filtra(produtos.filter((x) => x.categoria === c.id))
+                const lista = filtra(produtos.filter((x) => c.id === CAT_RESTRICOES.id ? temRestricao(x) : x.categoria === c.id))
                     .sort((a, b) => (acabou(a) ? 1 : 0) - (acabou(b) ? 1 : 0) || semFoto(a) - semFoto(b));
                 total += lista.length;
                 if (!lista.length) return "";

@@ -406,6 +406,16 @@ async function carregarCardapioInicial(botao) {
     }
 }
 
+// ─── SEM GLÚTEN / SEM LACTOSE ────────────────────────────────────────────────
+// Ficam na lista "tags" do produto: aparecem como selo no site e na categoria
+// "Sem glúten e sem lactose" do catálogo.
+const TAG_GLUTEN = "Sem glúten", TAG_LACTOSE = "Sem lactose";
+const temTag = (p, t) => (p?.tags || []).some((x) => semAcento(x) === semAcento(t));
+const montarTags = (p, gluten, lactose) => {
+    const outras = (p?.tags || []).filter((x) => !temTag({ tags: [x] }, TAG_GLUTEN) && !temTag({ tags: [x] }, TAG_LACTOSE));
+    return [...(gluten ? [TAG_GLUTEN] : []), ...(lactose ? [TAG_LACTOSE] : []), ...outras];
+};
+
 // ─── ESTOQUE / PRODUTOS ──────────────────────────────────────────────────────
 // Busca sem se preocupar com acento nem maiúscula: "pao" acha "Pão"
 const semAcento = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -492,6 +502,10 @@ function renderEstoque() {
                 </div>
                 <div class="produto-acoes">
                     <label class="interruptor"><input type="checkbox" data-ativo="${p.id}" ${p.ativo !== false ? "checked" : ""}><span class="trilha"></span><span>No site</span></label>
+                    <div class="restricoes">
+                        <label class="caixinha"><input type="checkbox" data-restricao="gluten" data-produto="${p.id}" ${temTag(p, TAG_GLUTEN) ? "checked" : ""}><span>Sem glúten</span></label>
+                        <label class="caixinha"><input type="checkbox" data-restricao="lactose" data-produto="${p.id}" ${temTag(p, TAG_LACTOSE) ? "checked" : ""}><span>Sem lactose</span></label>
+                    </div>
                     <button class="btn btn-claro btn-editar" data-editar="${p.id}"><i class="fa-solid fa-pen"></i> Editar</button>
                 </div>
             </div>`;
@@ -521,6 +535,8 @@ function abrirProduto(id) {
     $("jp-prazo").value = p.prazoDias || "";
     $("jp-prazo-campo").hidden = !$("jp-encomenda").checked;
     $("jp-destaque").checked = !!p.destaque;
+    $("jp-sem-gluten").checked = temTag(p, TAG_GLUTEN);
+    $("jp-sem-lactose").checked = temTag(p, TAG_LACTOSE);
     $("jp-ativo").checked = p.ativo !== false;
     $("jp-excluir").hidden = !produtoEditando;
     abrirJanela("jn-produto");
@@ -571,8 +587,11 @@ async function salvarProduto() {
     if (!nome) { avisar("Coloque o nome do produto.", false); $("jp-nome").focus(); return; }
     if (!(preco >= 0) || $("jp-preco").value === "") { avisar("Coloque o preço.", false); $("jp-preco").focus(); return; }
     const sabores = $("jp-sabores").value.split("\n").map((s) => s.trim()).filter(Boolean);
-    const tamanhos = $("jp-tamanhos").value.split("\n").map((l) => l.split("|")).filter((x) => x.length >= 2 && x[0].trim())
-        .map(([n, v]) => ({ nome: n.trim(), preco: Number(v.trim().replace(",", ".")) || 0 }));
+    // Aceita "Média - 45", "Média | 45", "Média: 45" ou "Grande R$ 90" (o número do fim é o preço)
+    const tamanhos = $("jp-tamanhos").value.split("\n").map((l) => l.trim()).filter(Boolean).map((l) => {
+        const m = l.match(/^(.*?)[\s|:=–—-]*(?:R\$)?\s*(\d+(?:[.,]\d{1,2})?)\s*$/i);
+        return m && m[1].trim() ? { nome: m[1].replace(/[\s|:=–—-]+$/, "").trim(), preco: Number(m[2].replace(",", ".")) || 0 } : null;
+    }).filter(Boolean);
     const id = produtoEditando ? produtoEditando.id : Math.max(0, ...produtos.map((x) => x.id)) + 1;
     const dados = {
         id, nome, preco, categoria: $("jp-categoria").value, descricao: $("jp-descricao").value.trim(),
@@ -585,6 +604,7 @@ async function salvarProduto() {
         destaque: $("jp-destaque").checked, ativo: $("jp-ativo").checked,
         imagem: fotoNova || produtoEditando?.imagem || "assets/logo-olimpo.png",
         fotoInteira: $("jp-foto-inteira").checked,
+        tags: montarTags(produtoEditando, $("jp-sem-gluten").checked, $("jp-sem-lactose").checked),
     };
     if (dados.tamanhos) dados.preco = dados.tamanhos[0].preco;
     await Dados.salvar("produtos", id, dados);
@@ -869,6 +889,16 @@ function ligarEventos() {
         if (e.target.closest("[data-fechar]")) fecharJanela();
     });
     document.addEventListener("change", async (e) => {
+        const rs = e.target.closest("[data-restricao]");
+        if (rs) {
+            const p = produtos.find((x) => x.id === Number(rs.dataset.produto));
+            const gluten = rs.dataset.restricao === "gluten" ? rs.checked : temTag(p, TAG_GLUTEN);
+            const lactose = rs.dataset.restricao === "lactose" ? rs.checked : temTag(p, TAG_LACTOSE);
+            p.tags = montarTags(p, gluten, lactose);
+            await Dados.salvar("produtos", p.id, { tags: p.tags });
+            avisar(`"${p.nome}": ${rs.checked ? "marcado" : "desmarcado"} como ${rs.dataset.restricao === "gluten" ? "sem glúten" : "sem lactose"}.`);
+            return;
+        }
         const at = e.target.closest("[data-ativo]");
         if (!at) return;
         const p = produtos.find((x) => x.id === Number(at.dataset.ativo));

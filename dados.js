@@ -48,7 +48,6 @@ const SEED_CATEGORIAS = [
     { id: "congelados", nome: "Congelados", icone: "fa-snowflake", ordem: 13 },
     { id: "escondidinho-congelado", nome: "Escondidinho congelado", icone: "fa-snowflake", ordem: 14 },
     { id: "sopas-e-cremes-congelados", nome: "Sopas e Cremes Congelados", icone: "fa-mug-hot", ordem: 15 },
-    { id: "bebidas", nome: "Bebidas", icone: "fa-bottle-water", ordem: 16 },
     { id: "sal-grosso-temperado", nome: "Sal grosso temperado", icone: "fa-jar", ordem: 17 },
 ];
 
@@ -269,18 +268,6 @@ const SEED_PRODUTOS = [
     p(191, "escondidinho-congelado", "Escondidinho fit de mandioquinha com frango e ricota", "Escondidinho fit de mandioquinha, ricota e frango com molho totalmente artesanal, congelado com embalagem própria para microondas", "if-escondidinho-fit-de-mandioquinha-com-frango-e-ricota.jpg", 35, 4),
     // Sopas e Cremes Congelados
     p(192, "sopas-e-cremes-congelados", "Creme de batata com bacon", "Delicioso creme de batata, com requeijão e bacon, sopa mega encorpada e temperada, uma refeição que esquenta o coração e a alma. Embalagem própria para uso no microondas", "if-creme-de-batata-com-bacon.jpg", 49, 4),
-    // Bebidas
-    p(193, "bebidas", "Coca-Cola Lata 350ml", "", "if-coca-cola-lata-350ml.jpg", 8, 4),
-    p(194, "bebidas", "Refri Pepsi Twist Black Lt 350ml", "Lata 350ml", "if-refri-pepsi-twist-black-lt-350ml.jpg", 8, 4),
-    p(195, "bebidas", "Fanta Laranja Lata 350ml", "Lata 350ml", "if-fanta-laranja-lata-350ml.jpg", 8, 4),
-    p(196, "bebidas", "Coca-Cola Zero Lata 350ml", "", "if-coca-cola-zero-lata-350ml.jpg", 8, 4),
-    p(197, "bebidas", "Refrigerante Guaraná Antarctica Lata 350ml", "", "if-refrigerante-guarana-antarctica-lata-350ml.jpg", 8, 4),
-    p(198, "bebidas", "Refrigerante Guaraná Zero Antarctica 350ml", "Lata 350ml", "if-refrigerante-guarana-zero-antarctica-350ml.jpg", 8, 4),
-    p(199, "bebidas", "Coca-Cola 600ml", "Garrafa 600ml", "if-coca-cola-600ml.jpg", 11, 4),
-    p(200, "bebidas", "Coca-Cola Zero 600ml", "Garrafa 600ml", "if-coca-cola-zero-600ml.jpg", 11, 4),
-    p(201, "bebidas", "Refrigerante Sprite Original 350ml", "Lata 350ml", "if-refrigerante-sprite-original-350ml.jpg", 8, 4),
-    p(202, "bebidas", "Schweppes Tônica Sem Açúcar 350ml", "", "if-schweppes-tonica-sem-acucar-350ml.jpg", 8, 4),
-    p(203, "bebidas", "Água Tônica Schweppes Lata 350ml", "Lata 350ml", "if-agua-tonica-schweppes-lata-350ml.jpg", 8, 4),
     // Sal grosso temperado
     p(204, "sal-grosso-temperado", "Sal grosso temperado artesanalmente", "Sal grosso temperado artesanalmente, com especiarias e ervas, um toque todo especial para seu churrasco.", "if-sal-grosso-temperado-artesanalmente.jpg", 7, 4),
 ];
