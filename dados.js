@@ -34,6 +34,7 @@ const IMG = "assets/produtos/";
 
 const SEED_CATEGORIAS = [
     { id: "natal", nome: "Especiais de Natal", icone: "fa-gifts", ordem: 1 },
+    { id: "lembrancas-natal", nome: "Lembranças de Natal", icone: "fa-gift", ordem: 1.5 },
     { id: "paes", nome: "Pães", icone: "fa-bread-slice", ordem: 2 },
     { id: "cuca-alema", nome: "Cuca alemã", icone: "fa-cookie", ordem: 3 },
     { id: "salgados", nome: "Salgados", icone: "fa-burger", ordem: 4 },
@@ -58,7 +59,23 @@ const p = (id, categoria, nome, descricao, imagem, preco, estoque, extra = {}) =
     estoque, estoqueMinimo: 2, ativo: true, destaque: false, ...extra,
 });
 
+// Lembranças de Natal (catálogo de lembranças da Olimpo — nov/2026)
+const ENC = { disponibilidade: "encomenda" };
+const SEED_LEMBRANCAS = [
+    p(301, "lembrancas-natal", "Cone Papai Noel", "Cone do Papai Noel com 2 trufas recheadas.", "lemb-cone-papai-noel.jpg", 15, undefined, ENC),
+    p(302, "lembrancas-natal", "Mansão do Papai Noel", "Um chocotone grande (600g), um pacote de merengue crocante e um pacote de bolachas natalinas.", "lemb-mansao-papai-noel.jpg", 55, undefined, ENC),
+    p(303, "lembrancas-natal", "Maleta de Natal", "Maleta do Papai Noel com trufa e bolachas de Natal.", "lemb-maleta-natal.jpg", 18, undefined, ENC),
+    p(304, "lembrancas-natal", "Caixa Boneco de Neve", "Caixinha natalina com mini chocotone.", "lemb-caixa-boneco-neve.jpg", 18, undefined, ENC),
+    p(305, "lembrancas-natal", "Bolacha natalina", "Bolachas natalinas decoradas. No saquinho ou com embalagem presenteável.", "lemb-bolacha-natalina.jpg", 11, undefined, { tamanhos: [{ nome: "Saquinho", preco: 11 }, { nome: "Com embalagem presenteável", preco: 16 }], ...ENC }),
+    p(306, "lembrancas-natal", "Árvore pão de mel", "Pão de mel em formato de árvore, com recheio de mumu e cobertura de chocolate meio amargo.", "lemb-arvore-pao-de-mel.jpg", 14, undefined, ENC),
+    p(307, "lembrancas-natal", "Mini chocotone", "Mini chocotone artesanal, embalado para presente.", "lemb-mini-chocotone.jpg", 11, undefined, ENC),
+    p(308, "lembrancas-natal", "Guirlanda de chocolate", "Guirlanda de chocolate crunch crocante.", "lemb-guirlanda.jpg", 22, undefined, ENC),
+    p(309, "lembrancas-natal", "Casa do Papai Noel", "Casinha natalina com 1 chocotone grande de 600g.", "lemb-casa-papai-noel.jpg", 39, undefined, ENC),
+    p(310, "lembrancas-natal", "Caixa com 2 mini chocotones", "Caixa Boas Festas com 2 mini chocotones.", "lemb-caixa-2-mini-chocotones.jpg", 29, undefined, ENC),
+];
+
 const SEED_PRODUTOS = [
+    ...SEED_LEMBRANCAS,
     // Especiais de Natal
     p(1, "natal", "Panetone trufado", "Panetone artesanal trufado, recheado e decorado. Consulte os sabores de recheio.", "natal-panetone-trufado-1.jpg", 70, undefined, { disponibilidade: "encomenda" }),
     p(2, "natal", "Panetone tradicional", "Panetone artesanal fofinho, com frutas cristalizadas ou gotas de chocolate.", "natal-panetone-trufado-2.jpg", 30, undefined, { opcaoInclusa: { label: "Escolha a versão", opcoes: ["Frutas cristalizadas", "Gotas de chocolate"] }, disponibilidade: "encomenda" }),
@@ -290,9 +307,11 @@ const SEED_CONFIG = {
     nomeLoja: "Especiarias do Olimpo",
     nomeDona: "Dani",
     whatsapp: "5551999999999",
-    heroTag: "Feito em casa, com carinho",
-    heroTitulo: "Bolos, doces e pães caseiros",
-    heroSubtitulo: "Escolha, coloque no carrinho e receba em casa no Campo Belo e região",
+    heroTag: "Produtos totalmente artesanais",
+    heroTitulo: "Feitos com amor, direto para a sua mesa",
+    heroSubtitulo: "Linha de café (pães, cucas, bolos e salgados), sobremesas e congelados.",
+    // Link da loja no iFood (deixe vazio para esconder o selo "Também no iFood")
+    ifood: "https://www.ifood.com.br/delivery/cachoeirinha-rs/especiarias-do-olimpo-fazenda-esperanca/c33ae586-82c3-4bf4-b727-1fd97255fffe",
     aviso: "Tele grátis até às 19h • Dia de chuva até às 18h • Depois, tele terceirizada R$ 4",
     // Vitrine de Natal no topo do site (liga/desliga em Ajustes do painel)
     vitrineNatal: true,
@@ -522,6 +541,25 @@ const Dados = MODO_DEMO ? DadosDemo : DadosFirebase;
 // Valores padrão (usados quando a configuração salva não tem algum campo)
 const CONFIG_PADRAO = SEED_CONFIG;
 
+// Troca os textos antigos do topo pelos novos (só se ninguém editou pelo painel)
+const TEXTOS_ANTIGOS = {
+    heroTag: "Feito em casa, com carinho",
+    heroTitulo: "Bolos, doces e pães caseiros",
+    heroSubtitulo: "Escolha, coloque no carrinho e receba em casa no Campo Belo e região",
+};
+const atualizarTextosAntigos = (conf) => {
+    const c = { ...conf };
+    for (const [campo, antigo] of Object.entries(TEXTOS_ANTIGOS)) if (c[campo] === antigo) c[campo] = SEED_CONFIG[campo];
+    return c;
+};
+
 // Utilitários compartilhados
+// Sabores ligados no painel (os desligados não aparecem no site nem no PDV)
+const opcoesLigadas = (prod) => {
+    const fora = prod?.opcaoInclusa?.desligadas || [];
+    return (prod?.opcaoInclusa?.opcoes || []).filter((o) => !fora.includes(o));
+};
+// Produto que tem sabores, mas todos estão desligados hoje
+const semSaborHoje = (prod) => (prod?.opcaoInclusa?.opcoes || []).length > 0 && opcoesLigadas(prod).length === 0;
 const formatarMoeda = (v) => (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const escaparHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

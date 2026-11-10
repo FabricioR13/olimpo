@@ -365,9 +365,11 @@
 
                 <div class="bloco">
                     <h2><i class="fa-solid fa-pen"></i> Textos do site</h2>
+                    <div class="campo"><label for="aj-tag">Frase em destaque (acima do título)</label><input type="text" id="aj-tag" maxlength="40"></div>
                     <div class="campo"><label for="aj-titulo">Título principal</label><input type="text" id="aj-titulo"></div>
                     <div class="campo"><label for="aj-subtitulo">Frase abaixo do título</label><input type="text" id="aj-subtitulo"></div>
                     <div class="campo"><label for="aj-sobre">Sobre a Especiarias do Olimpo</label><textarea id="aj-sobre" rows="4"></textarea></div>
+                    <div class="campo"><label for="aj-ifood">Link da loja no iFood <small>(deixe vazio para esconder)</small></label><input type="url" id="aj-ifood" placeholder="https://www.ifood.com.br/..."></div>
                 </div>
 
                 <button class="btn btn-ouro btn-grande salvar-fixo" id="aj-salvar"><i class="fa-solid fa-floppy-disk"></i> Salvar ajustes</button>
@@ -408,10 +410,16 @@
         <button class="janela-fechar" data-fechar aria-label="Fechar">&times;</button>
         <h2 id="jp-titulo">Produto</h2>
         <div class="foto-produto">
-            <img id="jp-foto-previa" src="" alt="">
+            <div class="previa-moldura" id="jp-previa-moldura">
+                <img class="foto-fundo" id="jp-foto-previa-fundo" src="" alt="" aria-hidden="true">
+                <img class="foto-frente" id="jp-foto-previa" src="" alt="">
+            </div>
             <div class="foto-acoes">
                 <label class="btn btn-claro"><i class="fa-solid fa-camera"></i> Trocar foto<input type="file" id="jp-foto" accept="image/*" hidden></label>
-                <label class="check-foto-inteira"><input type="checkbox" id="jp-foto-inteira"> <span><strong>Foto inteira (sem cortar)</strong><small>Para artes com preço e escrita: mostra a imagem toda, com fundo desfocado.</small></span></label>
+                <div class="escolha-foto" role="radiogroup" aria-label="Como mostrar a foto no site">
+                    <label><input type="radio" name="jp-enquadre" value="inteira" id="jp-foto-inteira"> <span><strong>Foto inteira</strong><small>Aparece toda, sem cortar nada (o logo e o produto ficam inteiros).</small></span></label>
+                    <label><input type="radio" name="jp-enquadre" value="recortada" id="jp-foto-recortada"> <span><strong>Recortar para preencher</strong><small>A foto ocupa o quadro todo, cortando as bordas.</small></span></label>
+                </div>
             </div>
         </div>
         <div class="campo"><label for="jp-nome">Nome *</label><input type="text" id="jp-nome"></div>
@@ -436,7 +444,7 @@
             </div>
             <div class="grupo-linhas">
                 <p class="grupo-titulo">Sabores, recheios ou caldas</p>
-                <p class="grupo-ajuda">Cada caixinha vira uma opção para a cliente marcar (ela escolhe uma). Se o produto não tem escolha, deixe vazio.</p>
+                <p class="grupo-ajuda">Cada caixinha vira uma opção para a cliente marcar (ela escolhe uma). Use a chave ao lado para tirar do site os sabores que não tem hoje. Se o produto não tem escolha, deixe vazio.</p>
                 <div class="campo"><label for="jp-sabores-titulo">Pergunta que aparece no site</label><input type="text" id="jp-sabores-titulo" placeholder="Escolha o sabor"></div>
                 <div id="jp-sabores-linhas"></div>
                 <button type="button" class="btn btn-claro btn-pequeno btn-add-linha" data-add-linha="sabor"><i class="fa-solid fa-plus"></i> Adicionar opção</button>

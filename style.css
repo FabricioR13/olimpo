@@ -119,11 +119,11 @@ input, select, textarea { font-family: inherit; font-size: 17px; }
 .vn-trilho::-webkit-scrollbar { display: none; }
 .vn-faixa { display: flex; gap: 1.1rem; width: max-content; padding: .3rem .45rem .5rem; }
 .vn-foto {
-    flex: 0 0 auto; width: 230px; height: 230px; padding: 0; border: 3px solid rgba(233, 198, 107, .85); border-radius: 18px;
+    position: relative; flex: 0 0 auto; width: 230px; height: 230px; padding: 0; border: 3px solid rgba(233, 198, 107, .85); border-radius: 18px;
     overflow: hidden; background: var(--cacau); cursor: pointer; box-shadow: 0 10px 24px rgba(0, 0, 0, .35); transition: transform .2s;
 }
 .vn-foto:hover, .vn-foto:focus-visible { transform: translateY(-4px) scale(1.03); outline: none; border-color: #fff1c2; }
-.vn-foto img { width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
+.vn-foto img { display: block; user-select: none; -webkit-user-drag: none; }
 .aviso-categoria {
     display: flex; gap: .55rem; align-items: flex-start; margin: -.4rem 0 1.1rem; padding: .75rem 1rem; border-radius: 12px;
     background: #fbefe0; border: 1px solid #f0d6b0; color: #6e3a12; font-size: .95rem; font-weight: 600;
@@ -151,6 +151,14 @@ input, select, textarea { font-family: inherit; font-size: 17px; }
 .hero-acoes { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.5rem 0 1.2rem; }
 .hero-selos { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; color: var(--texto-suave); font-size: .92rem; font-weight: 700; }
 .hero-selos i { color: var(--ouro); margin-right: .3rem; }
+.aviso-categoria + .aviso-embalagens { margin-top: 0; }
+.aviso-embalagens { align-items: center; flex-wrap: wrap; text-decoration: none; cursor: pointer; }
+.aviso-embalagens i { margin-top: 0; }
+.aviso-embalagens b i { color: #128c4a; }
+.aviso-embalagens b { margin-left: auto; color: #128c4a; white-space: nowrap; }
+.aviso-embalagens:hover b, .aviso-embalagens:focus-visible b { text-decoration: underline; }
+.hero-selos a { color: inherit; text-decoration: none; border-bottom: 1px dashed currentColor; }
+.hero-selos a:hover, .hero-selos a:focus-visible { color: var(--cacau); }
 .hero-fotos { position: relative; height: 360px; }
 .hero-foto { position: absolute; border-radius: 22px; object-fit: cover; box-shadow: var(--sombra-forte); border: 5px solid var(--branco); }
 .hero-foto.f1 { width: 62%; aspect-ratio: 1; top: 0; left: 4%; transform: rotate(-4deg); }
@@ -198,8 +206,15 @@ main { padding: 1.5rem clamp(1rem, 4vw, 3rem) 1rem; max-width: 1280px; margin: 0
     box-shadow: var(--sombra); border: 1px solid #efe4d0; transition: transform .2s, box-shadow .2s;
 }
 .card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(60, 40, 20, .16); }
-.card-foto { position: relative; aspect-ratio: 1; cursor: pointer; background: var(--creme-2); }
-.card-foto img { width: 100%; height: 100%; object-fit: cover; }
+.card-foto { position: relative; aspect-ratio: 1; cursor: pointer; background: var(--creme-2); overflow: hidden; }
+
+/* Fotos: por padrão aparecem INTEIRAS (sem cortar), com a própria foto desfocada preenchendo
+   o espaço que sobra. Se no painel o produto estiver como "Recortar", a foto preenche o quadro. */
+.card-foto img, .mp-moldura img, .vn-foto img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.foto-fundo { object-fit: cover; filter: blur(14px) brightness(.88) saturate(1.1); transform: scale(1.2); }
+.foto-frente { object-fit: contain; }
+.recortada .foto-fundo { display: none; }
+.recortada .foto-frente { object-fit: cover; }
 .card-selos { position: absolute; top: .6rem; left: .6rem; display: flex; flex-wrap: wrap; gap: .3rem; }
 .selo { font-size: .74rem; font-weight: 800; padding: .25rem .6rem; border-radius: 999px; background: var(--branco); color: var(--texto); box-shadow: 0 2px 8px rgba(0, 0, 0, .12); }
 .selo-ouro { background: var(--cacau); color: var(--ouro-claro); }
@@ -275,8 +290,7 @@ main { padding: 1.5rem clamp(1rem, 4vw, 3rem) 1rem; max-width: 1280px; margin: 0
     background: var(--branco); border-radius: 22px; box-shadow: var(--sombra-forte);
 }
 .modal-produto.aberto { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
-.modal-produto > img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
-.modal-produto > img.inteira { aspect-ratio: 1; max-height: 62vh; object-fit: contain; background: var(--creme-2); }
+.mp-moldura { position: relative; width: 100%; aspect-ratio: 1; max-height: 60vh; overflow: hidden; background: var(--creme-2); border-radius: 22px 22px 0 0; }
 .mp-corpo { padding: 1.2rem 1.3rem 1.3rem; }
 .mp-tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .4rem; }
 .mp-corpo h2 { font-size: 1.35rem; line-height: 1.25; margin-bottom: .4rem; }

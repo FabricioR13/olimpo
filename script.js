@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         produtos = prods.filter((x) => x.ativo !== false).map((x) => ({ ...x, id: Number(x.id) }));
         categorias = cats.sort((a, b) => (a.ordem || 99) - (b.ordem || 99));
         cupons = cups;
-        if (conf) config = { ...CONFIG_PADRAO, ...conf };
+        if (conf) config = atualizarTextosAntigos({ ...CONFIG_PADRAO, ...conf });
     } catch (e) {
         console.error("Erro ao carregar dados da loja:", e);
     }
@@ -43,9 +43,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const tamanhosDe = (prod) =>
         Array.isArray(prod.tamanhos) && prod.tamanhos.length ? prod.tamanhos : [{ nome: null, preco: Number(prod.preco) || 0 }];
     const temEstoque = (prod) => prod.estoque !== undefined && prod.estoque !== null && prod.estoque !== "";
-    const acabou = (prod) => temEstoque(prod) && Number(prod.estoque) <= 0;
+    const acabou = (prod) => (temEstoque(prod) && Number(prod.estoque) <= 0) || semSaborHoje(prod);
     const qtdNoCarrinho = (id) => carrinho.filter((i) => i.id === id).reduce((a, i) => a + i.quantidade, 0);
-    const precisaEscolher = (prod) => tamanhosDe(prod).length > 1 || (prod.opcaoInclusa?.opcoes?.length > 0);
+    const precisaEscolher = (prod) => tamanhosDe(prod).length > 1 || opcoesLigadas(prod).length > 0;
 
     // ─── CONFIGURAÇÕES DA LOJA NA TELA ───────────────────────────────────────
     const aplicarConfig = () => {
@@ -55,6 +55,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         $("hero-tag").textContent = config.heroTag;
         $("hero-titulo").textContent = config.heroTitulo;
         $("hero-subtitulo").textContent = config.heroSubtitulo;
+        const linkIfood = String(config.ifood || "").trim();
+        $("selo-ifood").hidden = !/^https?:\/\//i.test(linkIfood);
+        if (linkIfood) $("link-ifood").href = linkIfood;
         const nomeDona = config.nomeDona || "a gente";
         $("hero-whatsapp").innerHTML = `<i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Falar com ${escaparHtml(config.nomeDona ? "a " + nomeDona : nomeDona)}`;
         $("hero-whatsapp").href = linkWhats(`Olá, ${nomeDona}! Vi o cardápio da ${config.nomeLoja} e gostaria de fazer um pedido.`);
@@ -119,8 +122,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const rotulo = esgot ? "Acabou" : precisaEscolher(prod) ? `<i class="fa-solid fa-hand-pointer"></i> Escolher` : `<i class="fa-solid fa-plus"></i> Adicionar`;
         return `
             <article class="card${esgot ? " acabou" : ""}" data-id="${prod.id}">
-                <div class="card-foto" data-abrir="${prod.id}">
-                    <img src="${escaparHtml(prod.imagem)}" alt="${escaparHtml(prod.nome)}" loading="lazy">
+                <div class="card-foto${prod.fotoRecortada ? " recortada" : ""}" data-abrir="${prod.id}">
+                    <img class="foto-fundo" src="${escaparHtml(prod.imagem)}" alt="" aria-hidden="true" loading="lazy">
+                    <img class="foto-frente" src="${escaparHtml(prod.imagem)}" alt="${escaparHtml(prod.nome)}" loading="lazy">
                     <div class="card-selos">${htmlSelos(prod)}</div>
                 </div>
                 <div class="card-corpo">
@@ -175,7 +179,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return `
                     <section class="secao-categoria" id="cat-${c.id}">
                         <h2 class="titulo-secao"><i class="fa-solid ${c.icone || "fa-tag"}" aria-hidden="true"></i> ${escaparHtml(c.nome)}</h2>
-                        ${c.id === "natal" && config.natalAviso ? `<p class="aviso-categoria"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> ${escaparHtml(config.natalAviso)}</p>` : ""}
+                        ${(c.id === "natal" || c.id === "lembrancas-natal") && config.natalAviso ? `<p class="aviso-categoria"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> ${escaparHtml(config.natalAviso)}</p>` : ""}
+                        ${c.id === "lembrancas-natal" ? `<a class="aviso-categoria aviso-embalagens" href="${linkWhats(`Olá, ${config.nomeDona || ""}! Quero consultar as embalagens disponíveis para as lembranças de Natal.`)}" target="_blank" rel="noopener"><i class="fa-solid fa-box-open" aria-hidden="true"></i> <span>Consulte as embalagens disponíveis</span> <b><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Perguntar</b></a>` : ""}
                         <div class="grade">${lista.map(htmlCard).join("")}</div>
                     </section>`;
             }).join("");
@@ -187,9 +192,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const FOTOS_EXTRAS_NATAL = {
         "Panetone trufado": ["natal-panetone-trufado-3.jpg", "natal-panetone-trad-3.jpg", "natal-panetone-trad-2.jpg"],
         "Panetone tradicional": ["natal-panetone-trad-1.jpg"],
+        "Bolacha natalina": ["lemb-bolacha-natalina-saquinho.jpg"],
     };
     const renderVitrineNatal = () => {
-        const daCategoria = produtos.filter((x) => x.categoria === "natal" && x.imagem && !/foto-em-breve/.test(x.imagem));
+        const daCategoria = produtos.filter((x) => (x.categoria === "natal" || x.categoria === "lembrancas-natal") && x.imagem && !/foto-em-breve/.test(x.imagem));
         const ligada = config.vitrineNatal !== false && daCategoria.length > 0;
         $("vitrine-natal").hidden = !ligada;
         if (!ligada) return;
@@ -205,7 +211,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         for (let i = fotos.length - 1; i > 0; i -= 3) { const j = (i * 7) % (i + 1); [fotos[i], fotos[j]] = [fotos[j], fotos[i]]; }
         const html = fotos.map((f) => `
             <button class="vn-foto" type="button" data-abrir="${f.id}" aria-label="${escaparHtml(f.nome)}">
-                <img src="${escaparHtml(f.src)}" alt="${escaparHtml(f.nome)}" loading="lazy" draggable="false">
+                <img class="foto-fundo" src="${escaparHtml(f.src)}" alt="" aria-hidden="true" loading="lazy" draggable="false">
+                <img class="foto-frente" src="${escaparHtml(f.src)}" alt="${escaparHtml(f.nome)}" loading="lazy" draggable="false">
             </button>`).join("");
         // Duas cópias seguidas para a rolagem nunca acabar
         $("vn-faixa").innerHTML = html + html.replace(/<button class="vn-foto"/g, '<button class="vn-foto" tabindex="-1" aria-hidden="true"');
@@ -271,7 +278,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!prod) return;
         mpProduto = prod; mpTamanho = 0; mpOpcao = null; mpQtd = 1;
         $("mp-foto").src = prod.imagem; $("mp-foto").alt = prod.nome;
-        $("mp-foto").classList.toggle("inteira", !!prod.fotoInteira);
+        $("mp-foto-fundo").src = prod.imagem;
+        $("mp-moldura").classList.toggle("recortada", !!prod.fotoRecortada);
         $("mp-nome").textContent = prod.nome;
         $("mp-descricao").textContent = prod.descricao || "";
         $("mp-tags").innerHTML = htmlSelos(prod);
@@ -283,7 +291,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <label class="opcao"><input type="radio" name="mp-tamanho" value="${i}" ${i === 0 ? "checked" : ""}>
             <span>${escaparHtml(t.nome)}</span><span>${formatarMoeda(t.preco)}</span></label>`).join("");
 
-        const ops = prod.opcaoInclusa?.opcoes || [];
+        const ops = opcoesLigadas(prod);
         $("mp-grupo-opcao").hidden = !ops.length;
         $("mp-rotulo-opcao").textContent = prod.opcaoInclusa?.label || "Escolha uma opção";
         $("mp-opcoes").innerHTML = ops.map((o) => `
@@ -314,7 +322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     $("mp-adicionar").addEventListener("click", () => {
         if (!mpProduto || acabou(mpProduto)) return;
-        if (mpProduto.opcaoInclusa?.opcoes?.length && !mpOpcao) {
+        if (opcoesLigadas(mpProduto).length && !mpOpcao) {
             avisar(`${mpProduto.opcaoInclusa.label || "Escolha uma opção"} antes de adicionar.`);
             $("mp-grupo-opcao").scrollIntoView({ behavior: "smooth", block: "center" });
             return;

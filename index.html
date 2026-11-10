@@ -4,21 +4,21 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Especiarias do Olimpo — bolos, doces, pães caseiros e congelados com entrega no Campo Belo e região, Cachoeirinha/RS.">
+    <meta name="description" content="Especiarias do Olimpo — produtos totalmente artesanais: linha de café (pães, cucas, bolos e salgados), sobremesas e congelados. Entrega no Campo Belo e região, Cachoeirinha/RS.">
     <meta name="theme-color" content="#1C1512">
 
     <!-- Prévia do link no WhatsApp, Instagram e Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Especiarias do Olimpo">
     <meta property="og:url" content="https://fabricior13.github.io/olimpo/">
-    <meta property="og:title" content="🍰 Especiarias do Olimpo — Bolos, doces e pães caseiros">
-    <meta property="og:description" content="Veja o que tem hoje e faça seu pedido em poucos toques. Entrega no Campo Belo e região, Cachoeirinha/RS.">
+    <meta property="og:title" content="🍰 Especiarias do Olimpo — Artesanal, feito com amor">
+    <meta property="og:description" content="Pães, cucas, bolos, salgados, sobremesas e congelados. Veja o que tem hoje e peça em poucos toques. Entrega no Campo Belo e região.">
     <meta property="og:image" content="https://fabricior13.github.io/olimpo/assets/og-olimpo.jpg">
     <meta property="og:image:secure_url" content="https://fabricior13.github.io/olimpo/assets/og-olimpo.jpg">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Especiarias do Olimpo — bolos, doces e pães caseiros">
+    <meta property="og:image:alt" content="Especiarias do Olimpo — produtos artesanais feitos com amor">
     <meta property="og:locale" content="pt_BR">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -77,6 +77,7 @@
             <ul class="hero-selos">
                 <li><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Entrega no Campo Belo e região</li>
                 <li><i class="fa-solid fa-house" aria-hidden="true"></i> Retirada no local</li>
+                <li id="selo-ifood" hidden><a href="#" id="link-ifood" target="_blank" rel="noopener"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Também no iFood</a></li>
                 <li><i class="fa-brands fa-pix" aria-hidden="true"></i> Pix, cartão ou dinheiro</li>
             </ul>
         </div>
@@ -146,7 +147,10 @@
     <div class="fundo-escuro" id="fundo-produto"></div>
     <div class="modal-produto" id="modal-produto" role="dialog" aria-modal="true" aria-labelledby="mp-nome">
         <button class="fechar" id="mp-fechar" aria-label="Fechar">&times;</button>
-        <img id="mp-foto" src="" alt="">
+        <div class="mp-moldura" id="mp-moldura">
+            <img class="foto-fundo" id="mp-foto-fundo" src="" alt="" aria-hidden="true">
+            <img class="foto-frente" id="mp-foto" src="" alt="">
+        </div>
         <div class="mp-corpo">
             <div class="mp-tags" id="mp-tags"></div>
             <h2 id="mp-nome"></h2>

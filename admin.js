@@ -92,9 +92,30 @@ async function carregarTudo() {
     produtos = p.map((x) => ({ ...x, id: Number(x.id) })).sort((a, b) => a.id - b.id);
     categorias = c.sort((a, b) => (a.ordem || 99) - (b.ordem || 99));
     cupons = cu;
-    config = { ...CONFIG_PADRAO, ...(conf || {}) };
+    config = atualizarTextosAntigos({ ...CONFIG_PADRAO, ...(conf || {}) });
     movs = m.sort((a, b) => new Date(b.data) - new Date(a.data));
     pedidos = pe.sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+}
+
+// Itens novos do cardápio (ex.: Lembranças de Natal): entram sozinhos uma única vez
+// quando o painel abre, sem mexer nos produtos que a loja já tem nem trazer de volta excluídos.
+const NOVIDADES = [
+    { chave: "lembrancasNatal2026", categorias: ["lembrancas-natal"], produtos: () => SEED_LEMBRANCAS },
+];
+async function incluirNovidades() {
+    for (const n of NOVIDADES) {
+        if (config[n.chave]) continue;
+        const temCat = new Set(categorias.map((c) => c.id || c.docId));
+        const temProd = new Set(produtos.map((x) => Number(x.id)));
+        const tarefas = [
+            ...SEED_CATEGORIAS.filter((c) => n.categorias.includes(c.id) && !temCat.has(c.id)).map((c) => Dados.salvar("categorias", c.id, c)),
+            ...n.produtos().filter((x) => !temProd.has(x.id)).map((x) => Dados.salvar("produtos", x.id, Object.fromEntries(Object.entries(x).filter(([, v]) => v !== undefined)))),
+        ];
+        await Promise.all(tarefas);
+        await Dados.salvar("configuracoes", "geral", { [n.chave]: true });
+        if (tarefas.length) { await carregarTudo(); avisar("Novos produtos incluídos no cardápio: Lembranças de Natal 🎁"); }
+        config[n.chave] = true;
+    }
 }
 
 function atualizarTela() {
@@ -242,7 +263,7 @@ function colocarNaCesta(p, tamanho, opcao) {
 
 function escolherOpcao(p) {
     const tam = tamanhosDe(p);
-    const ops = p.opcaoInclusa?.opcoes || [];
+    const ops = opcoesLigadas(p);
     let tSel = tam.length > 1 ? null : tam[0];
     let oSel = ops.length ? null : "";
     $("jo-titulo").textContent = p.nome;
@@ -415,16 +436,42 @@ const linhaTamanhoHtml = (t = {}) => `
         <input type="text" class="lt-preco" placeholder="0,00" inputmode="decimal" value="${t.preco !== undefined && t.preco !== "" ? String(t.preco).replace(".", ",") : ""}" aria-label="Preço">
         <button type="button" class="btn-remover-linha" data-remover-linha aria-label="Remover"><i class="fa-solid fa-xmark"></i></button>
     </div>`;
-const linhaSaborHtml = (s = "") => `
-    <div class="linha-editavel linha-sabor">
-        <input type="text" placeholder="Ex.: Chocolate" value="${escaparHtml(s)}" aria-label="Opção">
+const linhaSaborHtml = (s = "", ligado = true) => `
+    <div class="linha-editavel linha-sabor${ligado ? "" : " desligado"}">
+        <input type="text" class="ls-nome" placeholder="Ex.: Chocolate" value="${escaparHtml(s)}" aria-label="Opção">
+        <label class="chave-sabor" title="Mostrar ou esconder este sabor no site">
+            <input type="checkbox" class="ls-ligado" ${ligado ? "checked" : ""}>
+            <span class="trilha"></span><span class="chave-texto">${ligado ? "No site" : "Fora"}</span>
+        </label>
         <button type="button" class="btn-remover-linha" data-remover-linha aria-label="Remover"><i class="fa-solid fa-xmark"></i></button>
     </div>`;
 function renderLinhasTamanho(lista) {
     $("jp-tamanhos-linhas").innerHTML = (lista.length ? lista : [{}, {}]).map(linhaTamanhoHtml).join("");
 }
-function renderLinhasSabor(lista) {
-    $("jp-sabores-linhas").innerHTML = (lista.length ? lista : [""]).map(linhaSaborHtml).join("");
+function renderLinhasSabor(lista, desligadas = []) {
+    $("jp-sabores-linhas").innerHTML = (lista.length ? lista : [""]).map((s) => linhaSaborHtml(s, !desligadas.includes(s))).join("");
+}
+const lerSabores = () => $$("#jp-sabores-linhas .linha-sabor")
+    .map((l) => ({ nome: l.querySelector(".ls-nome").value.trim(), ligado: l.querySelector(".ls-ligado").checked }))
+    .filter((x) => x.nome);
+
+// Liga/desliga um sabor: muda na hora e, se o produto já existe, já salva só essa parte
+async function trocarSabor(chk) {
+    const linha = chk.closest(".linha-sabor");
+    linha.classList.toggle("desligado", !chk.checked);
+    linha.querySelector(".chave-texto").textContent = chk.checked ? "No site" : "Fora";
+    const nome = linha.querySelector(".ls-nome").value.trim();
+    if (!produtoEditando || !nome || !(produtoEditando.opcaoInclusa?.opcoes || []).includes(nome)) return;
+    const desligadas = lerSabores().filter((x) => !x.ligado).map((x) => x.nome)
+        .filter((n) => produtoEditando.opcaoInclusa.opcoes.includes(n));
+    const opcaoInclusa = { ...produtoEditando.opcaoInclusa, desligadas };
+    try {
+        await Dados.salvar("produtos", produtoEditando.id, { opcaoInclusa });
+        produtoEditando.opcaoInclusa = opcaoInclusa;
+        const p = produtos.find((x) => x.id === produtoEditando.id); if (p) p.opcaoInclusa = opcaoInclusa;
+        const ligados = opcoesLigadas(produtoEditando).length;
+        avisar(chk.checked ? `${nome} voltou para o site.` : ligados ? `${nome} saiu do site por hoje.` : `${nome} saiu do site. Nenhum sabor ligado: o produto aparece como "Acabou por hoje".`);
+    } catch (e) { console.error(e); avisar("Não consegui salvar. Verifique a internet.", false); }
 }
 
 // ─── SEM GLÚTEN / SEM LACTOSE ────────────────────────────────────────────────
@@ -540,9 +587,10 @@ function abrirProduto(id) {
     const p = produtoEditando || { ativo: true, estoqueMinimo: 3, categoria: categorias[0]?.id };
     fotoNova = null; fotoArquivo = null;
     $("jp-foto").value = "";
-    $("jp-foto-inteira").checked = !!p.fotoInteira;
+    $(p.fotoRecortada ? "jp-foto-recortada" : "jp-foto-inteira").checked = true;
+    $("jp-previa-moldura").classList.toggle("recortada", !!p.fotoRecortada);
     $("jp-titulo").textContent = produtoEditando ? "Editar produto" : "Novo produto";
-    $("jp-foto-previa").src = p.imagem || "assets/logo-olimpo.png";
+    mostrarPrevia(p.imagem || "assets/logo-olimpo.png");
     $("jp-nome").value = p.nome || "";
     $("jp-preco").value = p.preco ?? "";
     $("jp-categoria").innerHTML = categorias.map((c) => `<option value="${c.id}">${escaparHtml(c.nome)}</option>`).join("");
@@ -552,7 +600,7 @@ function abrirProduto(id) {
     $("jp-minimo").value = p.estoqueMinimo ?? 3;
     renderLinhasTamanho(p.tamanhos || []);
     document.querySelector("#jn-produto .mais-opcoes").open = !!(p.tamanhos?.length || p.opcaoInclusa?.opcoes?.length);
-    renderLinhasSabor(p.opcaoInclusa?.opcoes || []);
+    renderLinhasSabor(p.opcaoInclusa?.opcoes || [], p.opcaoInclusa?.desligadas || []);
     $("jp-sabores-titulo").value = p.opcaoInclusa?.label && p.opcaoInclusa.label !== "Escolha o sabor" ? p.opcaoInclusa.label : "";
     $("jp-tamanhos-titulo").value = p.tamanhosLabel || "";
     $("jp-encomenda").checked = p.disponibilidade === "encomenda";
@@ -566,9 +614,12 @@ function abrirProduto(id) {
     abrirJanela("jn-produto");
 }
 
-// inteira = true: não corta a foto (artes com preço e escrita). A imagem toda fica
-// no centro de um quadrado, e o espaço que sobra é preenchido com a própria foto desfocada.
-function reduzirFoto(arquivo, inteira = false) {
+function mostrarPrevia(src) { $("jp-foto-previa").src = src; $("jp-foto-previa-fundo").src = src; }
+
+// Guarda a foto INTEIRA (sem cortar), só diminuindo o tamanho para o site carregar rápido.
+// Se ela aparece inteira ou recortada é escolhido no produto e decidido na hora de mostrar,
+// então dá para trocar depois sem precisar enviar a foto de novo.
+function reduzirFoto(arquivo) {
     return new Promise((resolve, reject) => {
         const leitor = new FileReader();
         leitor.onload = () => {
@@ -576,26 +627,12 @@ function reduzirFoto(arquivo, inteira = false) {
             img.onload = () => {
                 const cv = document.createElement("canvas");
                 const ctx = cv.getContext("2d");
-                if (!inteira) {
-                    const lado = Math.min(img.width, img.height);
-                    const tam = Math.min(700, lado);
-                    cv.width = cv.height = tam;
-                    ctx.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, tam, tam);
-                } else {
-                    const tam = Math.min(900, Math.max(img.width, img.height));
-                    cv.width = cv.height = tam;
-                    // Fundo: a foto cobrindo o quadrado, desfocada e um pouco escurecida
-                    const borrao = Math.round(tam / 25), folga = borrao * 3; // folga evita borda escura do desfoque
-                    const cobre = Math.max((tam + folga * 2) / img.width, (tam + folga * 2) / img.height);
-                    ctx.filter = `blur(${borrao}px) brightness(.85)`;
-                    ctx.drawImage(img, (tam - img.width * cobre) / 2, (tam - img.height * cobre) / 2, img.width * cobre, img.height * cobre);
-                    ctx.filter = "none";
-                    // Frente: a foto inteira, sem cortar
-                    const cabe = Math.min(tam / img.width, tam / img.height);
-                    const w = img.width * cabe, h = img.height * cabe;
-                    ctx.drawImage(img, (tam - w) / 2, (tam - h) / 2, w, h);
-                }
-                resolve(cv.toDataURL("image/jpeg", 0.82));
+                const escala = Math.min(1, 1000 / Math.max(img.width, img.height));
+                cv.width = Math.round(img.width * escala);
+                cv.height = Math.round(img.height * escala);
+                ctx.imageSmoothingQuality = "high";
+                ctx.drawImage(img, 0, 0, cv.width, cv.height);
+                resolve(cv.toDataURL("image/jpeg", 0.85));
             };
             img.onerror = reject;
             img.src = leitor.result;
@@ -610,7 +647,9 @@ async function salvarProduto() {
     const preco = Number(String($("jp-preco").value).replace(",", "."));
     if (!nome) { avisar("Coloque o nome do produto.", false); $("jp-nome").focus(); return; }
     if (!(preco >= 0) || $("jp-preco").value === "") { avisar("Coloque o preço.", false); $("jp-preco").focus(); return; }
-    const sabores = $$("#jp-sabores-linhas input").map((i) => i.value.trim()).filter(Boolean);
+    const listaSabores = lerSabores();
+    const sabores = listaSabores.map((x) => x.nome);
+    const desligadas = listaSabores.filter((x) => !x.ligado).map((x) => x.nome);
     const tamanhos = [];
     for (const linha of $$("#jp-tamanhos-linhas .linha-editavel")) {
         const nomeT = linha.querySelector(".lt-nome").value.trim();
@@ -625,14 +664,14 @@ async function salvarProduto() {
         id, nome, preco, categoria: $("jp-categoria").value, descricao: $("jp-descricao").value.trim(),
         estoque: $("jp-estoque").value === "" ? null : Math.max(0, Number($("jp-estoque").value)),
         estoqueMinimo: Number($("jp-minimo").value) || 0,
-        opcaoInclusa: sabores.length ? { label: $("jp-sabores-titulo").value.trim() || "Escolha o sabor", opcoes: sabores } : null,
+        opcaoInclusa: sabores.length ? { label: $("jp-sabores-titulo").value.trim() || "Escolha o sabor", opcoes: sabores, desligadas } : null,
         tamanhosLabel: $("jp-tamanhos-titulo").value.trim() || null,
         tamanhos: tamanhos.length > 1 ? tamanhos : null,
         disponibilidade: $("jp-encomenda").checked ? "encomenda" : "pronta",
         prazoDias: $("jp-encomenda").checked ? Number($("jp-prazo").value) || null : null,
         destaque: $("jp-destaque").checked, ativo: $("jp-ativo").checked,
         imagem: fotoNova || produtoEditando?.imagem || "assets/logo-olimpo.png",
-        fotoInteira: $("jp-foto-inteira").checked,
+        fotoRecortada: $("jp-foto-recortada").checked,
         tags: montarTags(produtoEditando, $("jp-sem-gluten").checked, $("jp-sem-lactose").checked),
     };
     if (dados.tamanhos) dados.preco = dados.tamanhos[0].preco;
@@ -813,9 +852,11 @@ function renderAjustes() {
     $("aj-gratis").value = config.freteGratisAcima ?? 0;
     $("aj-hora-ini").value = config.retiradaHoraInicio || "09:00";
     $("aj-hora-fim").value = config.retiradaHoraFim || "18:00";
+    $("aj-tag").value = config.heroTag || "";
     $("aj-titulo").value = config.heroTitulo || "";
     $("aj-subtitulo").value = config.heroSubtitulo || "";
     $("aj-sobre").value = config.sobreTexto || "";
+    $("aj-ifood").value = config.ifood || "";
     $("aj-banco").hidden = MODO_DEMO;
     $("aj-natal").checked = config.vitrineNatal !== false;
     $("aj-natal-titulo").value = config.natalTitulo || "";
@@ -846,6 +887,8 @@ async function salvarAjustes() {
     const whats = $("aj-whats").value.replace(/\D/g, "");
     if (whats.length < 12) { avisar("Confira o WhatsApp: precisa ter 55 + DDD + número.", false); $("aj-whats").focus(); return; }
     if (!$("aj-entrega").checked && !$("aj-retirada").checked) { avisar("Deixe pelo menos entrega ou retirada ligada.", false); return; }
+    const ifood = $("aj-ifood").value.trim();
+    if (ifood && !/^https?:\/\//i.test(ifood)) { avisar("O link do iFood precisa começar com https://", false); $("aj-ifood").focus(); return; }
     const novo = {
         lojaAberta: $("aj-aberta").checked,
         nomeLoja: $("aj-nome").value.trim() || CONFIG_PADRAO.nomeLoja,
@@ -855,7 +898,9 @@ async function salvarAjustes() {
         pedidoMinimo: Number($("aj-minimo").value) || 0, freteGratisAcima: Number($("aj-gratis").value) || 0,
         retiradaHoraInicio: $("aj-hora-ini").value, retiradaHoraFim: $("aj-hora-fim").value,
         retiradaDias: $$("#aj-dias input:checked").map((x) => Number(x.value)),
+        heroTag: $("aj-tag").value.trim() || CONFIG_PADRAO.heroTag,
         heroTitulo: $("aj-titulo").value.trim() || CONFIG_PADRAO.heroTitulo,
+        ifood,
         heroSubtitulo: $("aj-subtitulo").value.trim(), sobreTexto: $("aj-sobre").value.trim(),
         vitrineNatal: $("aj-natal").checked,
         natalTitulo: $("aj-natal-titulo").value.trim() || "Especiais de Natal",
@@ -910,14 +955,14 @@ function ligarEventos() {
             const tipo = add.dataset.addLinha;
             const cont = $(tipo === "tamanho" ? "jp-tamanhos-linhas" : "jp-sabores-linhas");
             cont.insertAdjacentHTML("beforeend", tipo === "tamanho" ? linhaTamanhoHtml() : linhaSaborHtml());
-            cont.lastElementChild.querySelector("input").focus();
+            cont.lastElementChild.querySelector("input[type=text]").focus();
             return;
         }
         const rem = e.target.closest("[data-remover-linha]");
         if (rem) {
             const linha = rem.closest(".linha-editavel"), cont = linha.parentElement;
             if (cont.children.length > 1) linha.remove();
-            else linha.querySelectorAll("input").forEach((i) => { i.value = ""; });
+            else linha.querySelectorAll("input[type=text]").forEach((i) => { i.value = ""; });
             return;
         }
         const cc = e.target.closest("[data-carregar-cardapio]");
@@ -1021,18 +1066,14 @@ function ligarEventos() {
         const f = e.target.files[0];
         if (!f) return;
         fotoArquivo = f;
-        try { fotoNova = await reduzirFoto(f, $("jp-foto-inteira").checked); $("jp-foto-previa").src = fotoNova; }
+        try { fotoNova = await reduzirFoto(f); mostrarPrevia(fotoNova); }
         catch { avisar("Não consegui abrir essa foto.", false); }
     });
-    // Marcou/desmarcou "Foto inteira": refaz a foto escolhida agora; se for uma foto antiga, pede para escolher de novo
-    $("jp-foto-inteira").addEventListener("change", async () => {
-        if (fotoArquivo) {
-            try { fotoNova = await reduzirFoto(fotoArquivo, $("jp-foto-inteira").checked); $("jp-foto-previa").src = fotoNova; }
-            catch { avisar("Não consegui abrir essa foto.", false); }
-        } else if (produtoEditando?.imagem && $("jp-foto-inteira").checked !== !!produtoEditando.fotoInteira) {
-            avisar("Toque em \"Trocar foto\" e escolha a foto de novo para aplicar.", true);
-        }
-    });
+    // Inteira ou recortada: a prévia já mostra como vai ficar no site (vale também para fotos antigas)
+    $$("input[name=jp-enquadre]").forEach((r) => r.addEventListener("change", () => {
+        $("jp-previa-moldura").classList.toggle("recortada", $("jp-foto-recortada").checked);
+    }));
+    $("jp-sabores-linhas").addEventListener("change", (e) => { if (e.target.classList.contains("ls-ligado")) trocarSabor(e.target); });
     $("jp-encomenda").addEventListener("change", () => { $("jp-prazo-campo").hidden = !$("jp-encomenda").checked; });
     $("jp-salvar").addEventListener("click", salvarProduto);
     $("jp-excluir").addEventListener("click", excluirProduto);
@@ -1110,6 +1151,7 @@ async function abrirApp() {
     $("topo-data").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
     try { await carregarTudo(); }
     catch (e) { console.error(e); avisar("Erro ao carregar os dados. Verifique a internet.", false); }
+    try { await incluirNovidades(); } catch (e) { console.error("Novidades do cardápio:", e); }
     irPara("inicio");
 }
 
