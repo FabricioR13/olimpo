@@ -25,3 +25,7 @@ Para usar de verdade, preencha `FIREBASE_CONFIG` em `dados.js` e siga `regras.md
 
 ---
 Desenvolvido por **Fabrício Rodrigues Garcia** — [TF Solutions](https://www.tfsolutions.com.br)
+
+## Atualizar o site sem cache
+Os arquivos `.js` e `.css` são carregados com `?v=AAAAMMDD` no `index.html` e no `admin.html`.
+Ao mudar algum deles, troque esse número para o navegador da cliente baixar a versão nova na hora.
