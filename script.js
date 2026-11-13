@@ -358,6 +358,54 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const detalheItem = (i) => [i.tamanho, i.opcao].filter(Boolean).join(" · ");
 
+    // ─── ENCOMENDAS (sinal + data) ───────────────────────────────────────────
+    // Produto "sob encomenda" no carrinho → a cliente escolhe a data e paga um sinal no Pix.
+    // Natal (categorias de Natal, data dentro do período do Natal): sinal de 30%.
+    // Outras datas: pelo menos 2 dias de antecedência e sinal de 50%. Tudo ajustável no painel.
+    const prodDoItem = (i) => produtos.find((x) => x.id === i.id);
+    const CATS_NATAL = () => config.natalCategorias || ["natal", "lembrancas-natal"];
+    const itensEncomenda = () => carrinho.filter((i) => prodDoItem(i)?.disponibilidade === "encomenda");
+    const temEncomenda = () => itensEncomenda().length > 0;
+    const soNatal = () => temEncomenda() && itensEncomenda().every((i) => CATS_NATAL().includes(prodDoItem(i)?.categoria));
+    const isoHoje = (somarDias = 0) => { const d = new Date(); d.setDate(d.getDate() + somarDias); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+    const dataBR = (iso) => { if (!iso) return ""; const [a, m, d] = iso.split("-"); const dt = new Date(+a, +m - 1, +d); return `${dt.toLocaleDateString("pt-BR", { weekday: "long" })}, ${d}/${m}/${a}`; };
+    const dentroDoNatal = (iso) => {
+        const md = (iso || "").slice(5);
+        const de = (config.natalDe || "2026-12-20").slice(5), ate = (config.natalAte || "2026-12-25").slice(5);
+        return !!md && md >= de && md <= ate;
+    };
+    const infoEncomenda = () => {
+        const data = $("enc-data").value;
+        const natal = soNatal() && dentroDoNatal(data);
+        const antecedencia = Number(config.encomendaAntecedencia ?? 2);
+        const pct = natal ? Number(config.sinalNatal ?? 30) : Number(config.sinalEncomenda ?? 50);
+        const total = calcular().total;
+        const sinal = Math.round(total * pct) / 100;
+        return { data, natal, pct, antecedencia, sinal, restante: Math.max(0, Math.round((total - sinal) * 100) / 100), minData: isoHoje(natal || soNatal() ? 0 : antecedencia) };
+    };
+    const atualizarEncomenda = () => {
+        const enc = temEncomenda();
+        $("encomenda-box").hidden = !enc;
+        // Encomenda: a data da retirada é a data da encomenda (não pede duas vezes)
+        $("campo-retirada-data").hidden = enc;
+        const btnEntrega = document.querySelector('.alternar-btn[data-tipo="entrega"]');
+        const natalSoRetirada = soNatal() && config.natalSomenteRetirada !== false;
+        btnEntrega.hidden = config.entregaDisponivel === false || natalSoRetirada;
+        if (natalSoRetirada && tipoEntrega === "entrega") document.querySelector('.alternar-btn[data-tipo="retirada"]').click();
+        if (!enc) return;
+        const i = infoEncomenda();
+        const antec = i.antecedencia;
+        $("enc-data").min = soNatal() ? isoHoje(0) : isoHoje(antec);
+        $("enc-regra").innerHTML = soNatal()
+            ? `🎄 <b>Encomenda de Natal</b>: para confirmar, pague um <b>sinal de ${Number(config.sinalNatal ?? 30)}%</b> no Pix.${natalSoRetirada ? " Somente retirada na loja." : ""} Para outras datas, a encomenda precisa de ${antec} dias de antecedência e sinal de ${Number(config.sinalEncomenda ?? 50)}%.`
+            : `📦 <b>Produto sob encomenda</b>: faça o pedido com pelo menos <b>${antec} dias de antecedência</b> e pague um <b>sinal de ${i.pct}%</b> no Pix para confirmar.`;
+        $("enc-sinal-info").innerHTML = i.data
+            ? `Sinal de <b>${i.pct}%</b>: <b>${formatarMoeda(i.sinal)}</b> · Restante na ${tipoEntrega === "entrega" ? "entrega" : "retirada"}: ${formatarMoeda(i.restante)}`
+            : "";
+        if (tipoEntrega === "retirada" && i.data) $("retirada-data").value = i.data;
+    };
+    $("enc-data").addEventListener("change", () => { $("enc-data").classList.remove("erro"); atualizarEncomenda(); });
+
     const calcular = () => {
         const subtotal = carrinho.reduce((a, i) => a + i.preco * i.quantidade, 0);
         let desconto = 0;
@@ -426,6 +474,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
             $("dica-frete").textContent = "";
         }
+        atualizarEncomenda();
         if (etapa === 3) renderResumo();
     };
 
@@ -528,6 +577,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             return true;
         }
         if (etapa === 2) {
+            if (temEncomenda()) {
+                if (!exigir(["enc-data"])) return false;
+                const i = infoEncomenda();
+                if (i.data < isoHoje(0)) { $("enc-data").classList.add("erro"); avisar("Essa data já passou. Escolha outro dia."); return false; }
+                if (!i.natal && i.data < isoHoje(i.antecedencia)) {
+                    $("enc-data").classList.add("erro");
+                    avisar(`Encomendas fora do Natal precisam de ${i.antecedencia} dias de antecedência. Escolha a partir de ${dataBR(isoHoje(i.antecedencia))}.`);
+                    return false;
+                }
+                if (tipoEntrega === "retirada") $("retirada-data").value = i.data;
+            }
             if (tipoEntrega === "entrega") {
                 if (!exigir(["bairro", "endereco"])) return false;
                 const { subtotal } = calcular();
@@ -584,8 +644,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         return troco ? `Dinheiro (troco para ${formatarMoeda(Number(troco))})` : "Dinheiro (sem troco)";
     };
 
+    const caixaSinal = (i, depois = false) => {
+        const pix = (config.chavePix || "").trim();
+        return `
+            <p class="enc-titulo">${i.natal ? "🎄 Encomenda de Natal" : "📦 Encomenda"} · ${escaparHtml(dataBR(i.data))}</p>
+            <p>${depois ? "Sua encomenda fica <b>reservada</b>. Para confirmar, pague o sinal:" : "Para confirmar a encomenda, você paga só o sinal agora:"}</p>
+            <div class="enc-valores">
+                <span>Sinal (${i.pct}%) no Pix</span><b>${formatarMoeda(i.sinal)}</b>
+                <span>Restante na ${tipoEntrega === "entrega" ? "entrega" : "retirada"}</span><b>${formatarMoeda(i.restante)}</b>
+            </div>
+            ${pix ? `<div class="enc-pix"><span>Chave Pix: <b id="${depois ? "pix-sucesso" : "pix-resumo"}">${escaparHtml(pix)}</b></span><button type="button" class="btn-copiar" data-copiar="${escaparHtml(pix)}"><i class="fa-regular fa-copy" aria-hidden="true"></i> Copiar</button></div>` : `<p><small>A chave Pix vem na resposta do WhatsApp.</small></p>`}
+            <p><small>Depois de pagar, envie o comprovante na conversa do WhatsApp. A encomenda é confirmada quando o sinal chegar.</small></p>`;
+    };
+    document.addEventListener("click", async (e) => {
+        const b = e.target.closest("[data-copiar]");
+        if (!b) return;
+        try { await navigator.clipboard.writeText(b.dataset.copiar); avisar("Chave Pix copiada!"); } catch { avisar("Copie a chave: " + b.dataset.copiar); }
+    });
+
     function renderResumo() {
         const c = calcular();
+        const enc = temEncomenda();
+        $("enc-pagamento").hidden = !enc;
+        $("titulo-pagamento").textContent = enc ? "Como vai pagar o restante?" : "Como vai pagar?";
+        if (enc) $("enc-pagamento").innerHTML = caixaSinal(infoEncomenda());
         const ent = textoEntrega();
         $("resumo").innerHTML = `
             <h5>Itens</h5>
@@ -615,13 +697,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         const obs = $("observacoes").value.trim();
         const itensTxt = carrinho.map((i) => `• ${i.quantidade}x ${i.nome}${detalheItem(i) ? ` (${detalheItem(i)})` : ""} — ${formatarMoeda(i.preco * i.quantidade)}`).join("\n");
 
-        let msg = `*NOVO PEDIDO — ${config.nomeLoja}*\n*Pedido nº ${codigo}*\n\n${itensTxt}\n\n`;
+        const enc = temEncomenda() ? infoEncomenda() : null;
+        let msg = enc
+            ? `*${enc.natal ? "🎄 NOVA ENCOMENDA DE NATAL" : "📦 NOVA ENCOMENDA"} — ${config.nomeLoja}*\n*Encomenda nº ${codigo}* · _aguardando o sinal no Pix_\n📅 *Para:* ${dataBR(enc.data)}\n\n${itensTxt}\n\n`
+            : `*NOVO PEDIDO — ${config.nomeLoja}*\n*Pedido nº ${codigo}*\n\n${itensTxt}\n\n`;
         msg += `Subtotal: ${formatarMoeda(c.subtotal)}\n`;
         if (c.desconto > 0) msg += `Desconto (${cupomAplicado.codigo}): - ${formatarMoeda(c.desconto)}\n`;
         if (tipoEntrega === "entrega") msg += `Entrega: ${c.frete === 0 ? "Grátis" : formatarMoeda(c.frete)}\n`;
         msg += `*Total: ${formatarMoeda(c.total)}*\n\n`;
         msg += `*${ent.titulo}:*\n${ent.linhas.join("\n")}\n\n`;
-        msg += `*Cliente:* ${$("cliente-nome").value.trim()}\n*WhatsApp:* ${$("cliente-telefone").value}\n*Pagamento:* ${pagamento}`;
+        if (enc) msg += `*Sinal (${enc.pct}%) no Pix:* ${formatarMoeda(enc.sinal)} — vou enviar o comprovante\n*Restante:* ${formatarMoeda(enc.restante)}\n\n`;
+        msg += `*Cliente:* ${$("cliente-nome").value.trim()}\n*WhatsApp:* ${$("cliente-telefone").value}\n*Pagamento${enc ? " do restante" : ""}:* ${pagamento}`;
         if (obs) msg += `\n*Observação:* ${obs}`;
 
         // Abre o WhatsApp primeiro (alguns celulares bloqueiam se demorar)
@@ -639,6 +725,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 pagamento, observacao: obs,
                 itens: carrinho.map((i) => ({ id: i.id, nome: i.nome + (detalheItem(i) ? ` (${detalheItem(i)})` : ""), quantidade: i.quantidade, preco: i.preco })),
                 subtotal: c.subtotal, desconto: c.desconto, frete: c.frete, total: c.total,
+                ...(enc ? { encomenda: { data: enc.data, tipo: enc.natal ? "natal" : "encomenda", percentual: enc.pct, sinal: enc.sinal, restante: enc.restante, sinalPago: false } } : {}),
             });
         } catch (e) {
             console.warn("Pedido enviado pelo WhatsApp, mas não foi registrado no painel:", e);
@@ -649,12 +736,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         $("carrinho-totais").hidden = true;
         $("carrinho-botoes").hidden = true;
         $("codigo-pedido").textContent = codigo;
+        $("enc-sucesso").hidden = !enc;
+        if (enc) $("enc-sucesso").innerHTML = caixaSinal(enc, true);
         $("etapa-sucesso").hidden = false;
     };
 
     const novoPedido = () => {
         carrinho = []; cupomAplicado = null;
-        $("cupom").value = ""; $("cupom-msg").textContent = ""; $("observacoes").value = "";
+        $("cupom").value = ""; $("cupom-msg").textContent = ""; $("observacoes").value = ""; $("enc-data").value = "";
         $("etapa-sucesso").hidden = true;
         $("etapas").hidden = false; $("carrinho-totais").hidden = false; $("carrinho-botoes").hidden = false;
         mostrarEtapa(1);

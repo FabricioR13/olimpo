@@ -204,6 +204,16 @@
 
             <!-- Etapa 2 -->
             <section class="etapa" data-etapa="2" hidden>
+                <!-- Encomendas: data + sinal (aparece só quando há produto sob encomenda no carrinho) -->
+                <div class="encomenda-box" id="encomenda-box" hidden>
+                    <h4><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> Sua encomenda</h4>
+                    <p class="enc-regra" id="enc-regra"></p>
+                    <div class="campo">
+                        <label for="enc-data">Para que dia você quer a encomenda?</label>
+                        <input type="date" id="enc-data">
+                    </div>
+                    <p class="enc-sinal" id="enc-sinal-info"></p>
+                </div>
                 <h4>Como você quer receber?</h4>
                 <div class="alternar" role="tablist">
                     <button type="button" class="alternar-btn ativo" data-tipo="entrega"><i class="fa-solid fa-motorcycle" aria-hidden="true"></i> Entrega</button>
@@ -227,7 +237,7 @@
                 <div id="campos-retirada" hidden>
                     <p class="info-retirada"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <span id="info-retirada"></span></p>
                     <div class="linha-2">
-                        <div class="campo">
+                        <div class="campo" id="campo-retirada-data">
                             <label for="retirada-data">Dia</label>
                             <input type="date" id="retirada-data">
                         </div>
@@ -250,7 +260,8 @@
 
             <!-- Etapa 3 -->
             <section class="etapa" data-etapa="3" hidden>
-                <h4>Como vai pagar?</h4>
+                <div class="enc-pagamento" id="enc-pagamento" hidden></div>
+                <h4 id="titulo-pagamento">Como vai pagar?</h4>
                 <div class="pagamentos">
                     <label class="pagamento selecionado"><input type="radio" name="pagamento" value="Pix" checked> <i class="fa-brands fa-pix" aria-hidden="true"></i> Pix</label>
                     <label class="pagamento"><input type="radio" name="pagamento" value="Cartão (maquininha na entrega)"> <i class="fa-regular fa-credit-card" aria-hidden="true"></i> Cartão <small>(na entrega)</small></label>
@@ -270,6 +281,7 @@
                 <p>Abrimos o WhatsApp com o seu pedido. <strong>Toque em enviar</strong> na conversa para a Dani receber.</p>
                 <p>Número do pedido:</p>
                 <div class="codigo-pedido" id="codigo-pedido"></div>
+                <div class="enc-pagamento" id="enc-sucesso" hidden></div>
                 <button type="button" class="btn btn-ouro btn-largo" id="novo-pedido">Fazer outro pedido</button>
             </section>
         </div>

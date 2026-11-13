@@ -102,7 +102,36 @@ async function carregarTudo() {
 const NOVIDADES = [
     { chave: "lembrancasNatal2026", categorias: ["lembrancas-natal"], produtos: () => SEED_LEMBRANCAS },
 ];
+// Ajustes que rodam uma única vez no painel (ex.: reorganizar categorias), sem
+// mexer em nada que a loja já tenha mudado depois.
+const POTE_IDS = [57, 58, 62, 63, 66, 77, 81, 87, 88, 91, 93, 96, 101, 103, 104, 105, 110, 115, 117, 119, 121];
+const ehDocePote = (x) => POTE_IDS.includes(Number(x.id))
+    || (/\b(no pote|de pote|pote|copo|marmita|individual)\b|^fatia\b|^mini\b|^tortinha\b/i.test(x.nome || "")
+        && !["natal", "lembrancas-natal"].includes(x.categoria) && x.disponibilidade !== "encomenda");
+const AJUSTES_UNICOS = [
+    {
+        chave: "categoriasNov2026",
+        aviso: "Categorias atualizadas: \"Natal por encomenda\" e \"Doces de pote e porções individuais\".",
+        async fazer() {
+            const temCat = new Set(categorias.map((c) => c.id || c.docId));
+            const tarefas = [];
+            if (temCat.has("natal")) tarefas.push(Dados.salvar("categorias", "natal", { nome: "Natal por encomenda" }));
+            if (!temCat.has("doces-pote")) tarefas.push(Dados.salvar("categorias", "doces-pote", SEED_CATEGORIAS.find((c) => c.id === "doces-pote")));
+            produtos.filter((x) => x.categoria !== "doces-pote" && ehDocePote(x))
+                .forEach((x) => tarefas.push(Dados.salvar("produtos", x.id, { categoria: "doces-pote" })));
+            await Promise.all(tarefas);
+            return tarefas.length;
+        },
+    },
+];
 async function incluirNovidades() {
+    for (const a of AJUSTES_UNICOS) {
+        if (config[a.chave]) continue;
+        const feitos = await a.fazer();
+        await Dados.salvar("configuracoes", "geral", { [a.chave]: true });
+        config[a.chave] = true;
+        if (feitos) { await carregarTudo(); avisar(a.aviso); }
+    }
     for (const n of NOVIDADES) {
         if (config[n.chave]) continue;
         const temCat = new Set(categorias.map((c) => c.id || c.docId));
@@ -314,31 +343,70 @@ function linkCliente(p, texto) {
     return `https://wa.me/${num}?text=${encodeURIComponent(texto)}`;
 }
 
+// Encomendas: pedidos com data marcada e sinal (vêm do site)
+const encomendasAbertas = () => pedidos.filter((p) => p.encomenda && (p.status === "novo" || p.status === "confirmado"))
+    .sort((a, b) => (a.encomenda.data || "").localeCompare(b.encomenda.data || ""));
+const dataEncomendaBR = (iso) => {
+    if (!iso) return "";
+    const [a, m, d] = iso.split("-");
+    const dt = new Date(+a, +m - 1, +d);
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const dias = Math.round((dt - hoje) / 86400000);
+    const quando = dias === 0 ? " (hoje)" : dias === 1 ? " (amanhã)" : dias > 1 ? ` (daqui a ${dias} dias)` : " (já passou)";
+    const sem = dt.toLocaleDateString("pt-BR", { weekday: "long" });
+    return `${sem.charAt(0).toUpperCase() + sem.slice(1)}, ${d}/${m}${quando}`;
+};
+function blocoEncomenda(p) {
+    const e = p.encomenda;
+    if (!e) return "";
+    return `
+        <div class="pedido-encomenda ${e.sinalPago ? "pago" : "aguardando"}">
+            <div><b>${e.tipo === "natal" ? "🎄 Encomenda de Natal" : "📦 Encomenda"}</b> · ${escaparHtml(dataEncomendaBR(e.data))}</div>
+            <div class="enc-linha"><span>Sinal ${e.percentual}%</span><b>${formatarMoeda(e.sinal)}</b>
+                <span class="etiqueta-sinal">${e.sinalPago ? "✅ Sinal pago" : "⏳ Aguardando o Pix"}</span></div>
+            <div class="enc-linha"><span>Falta receber</span><b>${formatarMoeda(e.sinalPago ? e.restante : p.total)}</b></div>
+        </div>`;
+}
+
 function renderPedidos() {
     ["novo", "confirmado"].forEach((s) => { $("qtd-" + s).textContent = pedidos.filter((p) => p.status === s).length || ""; });
+    $("qtd-encomendas").textContent = encomendasAbertas().length || "";
     $$("#abas-pedidos button").forEach((b) => b.classList.toggle("ativo", b.dataset.status === statusPedidos));
-    const lista = pedidos.filter((p) => p.status === statusPedidos);
-    const vazio = { novo: "Nenhum pedido novo agora. Quando chegar, ele aparece aqui.", confirmado: "Nenhum pedido em preparo.", entregue: "Nenhum pedido entregue ainda.", cancelado: "Nenhum pedido cancelado." };
+    const lista = statusPedidos === "encomendas" ? encomendasAbertas() : pedidos.filter((p) => p.status === statusPedidos);
+    const vazio = { novo: "Nenhum pedido novo agora. Quando chegar, ele aparece aqui.", confirmado: "Nenhum pedido em preparo.", entregue: "Nenhum pedido entregue ainda.", cancelado: "Nenhum pedido cancelado.", encomendas: "Nenhuma encomenda marcada. Quando uma cliente encomendar pelo site, ela aparece aqui, por data." };
+    let diaAnterior = null;
     $("lista-pedidos").innerHTML = lista.length ? lista.map((p) => {
+        let cabecalhoDia = "";
+        if (statusPedidos === "encomendas" && p.encomenda.data !== diaAnterior) {
+            diaAnterior = p.encomenda.data;
+            cabecalhoDia = `<p class="dia-cabecalho dia-encomenda"><span>${escaparHtml(dataEncomendaBR(p.encomenda.data))}</span><span>${lista.filter((x) => x.encomenda.data === p.encomenda.data).length}</span></p>`;
+        }
         const partes = (p.cliente || "").split(" ");
         const nome1 = /^(seu|dona|sr\.?|sra\.?)$/i.test(partes[0]) && partes[1] ? partes[0] + " " + partes[1] : partes[0];
-        const botoes = {
+        const botaoSinal = p.encomenda && !p.encomenda.sinalPago && (p.status === "novo" || p.status === "confirmado")
+            ? `<button class="btn btn-ouro btn-grande" data-pedido="${p.docId}" data-acao="sinal"><i class="fa-solid fa-money-bill-wave"></i> Sinal pago (${formatarMoeda(p.encomenda.sinal)})</button>` : "";
+        const botoes = botaoSinal + ({
             novo: `
                 <button class="btn btn-verde btn-grande" data-pedido="${p.docId}" data-acao="aceitar"><i class="fa-solid fa-check"></i> Aceitar pedido</button>
                 <button class="btn btn-claro btn-perigo" data-pedido="${p.docId}" data-acao="cancelar"><i class="fa-solid fa-xmark"></i> Recusar</button>`,
             confirmado: `
                 <button class="btn btn-verde btn-grande" data-pedido="${p.docId}" data-acao="entregar"><i class="fa-solid fa-hand-holding-heart"></i> Entregue e pago</button>
                 <button class="btn btn-claro btn-perigo" data-pedido="${p.docId}" data-acao="cancelar"><i class="fa-solid fa-xmark"></i> Cancelar</button>`,
-        }[p.status] || "";
-        const msgCliente = p.status === "novo"
+        }[p.status] || "");
+        const msgCliente = p.encomenda && !p.encomenda.sinalPago
+            ? `Olá, ${nome1}! Aqui é da ${config.nomeLoja}. Recebemos sua encomenda nº ${p.codigo} para ${dataEncomendaBR(p.encomenda.data).replace(/ \(.*\)$/, "")} 😊 Para confirmar, falta o sinal de ${formatarMoeda(p.encomenda.sinal)} no Pix${config.chavePix ? ` (chave: ${config.chavePix})` : ""}. Pode mandar o comprovante aqui!`
+            : p.encomenda && p.status === "novo"
+            ? `Olá, ${nome1}! Recebemos o sinal da sua encomenda nº ${p.codigo} 🎉 Está confirmada para ${dataEncomendaBR(p.encomenda.data).replace(/ \(.*\)$/, "")}.`
+            : p.status === "novo"
             ? `Olá, ${nome1}! Aqui é da ${config.nomeLoja}. Recebemos seu pedido nº ${p.codigo} 😊`
             : `Olá, ${nome1}! Seu pedido nº ${p.codigo} da ${config.nomeLoja} ${p.tipoEntrega === "Entrega" ? "já saiu para entrega" : "já está pronto para retirada"}! 🍰`;
-        return `
-            <article class="pedido ${p.status}">
+        return `${cabecalhoDia}
+            <article class="pedido ${p.status}${p.encomenda ? " tem-encomenda" : ""}">
                 <div class="pedido-topo">
                     <div><strong>${escaparHtml(p.cliente)}</strong><small>Pedido ${escaparHtml(p.codigo)} · ${tempoAtras(p.criadoEm)}</small></div>
                     <span class="etiqueta ${p.status}">${ROTULO_STATUS[p.status]}</span>
                 </div>
+                ${blocoEncomenda(p)}
                 <div class="pedido-corpo">
                     <ul>${(p.itens || []).map((i) => `<li><span><b>${i.quantidade}x</b> ${escaparHtml(i.nome)}</span><span>${formatarMoeda(i.preco * i.quantidade)}</span></li>`).join("")}</ul>
                     <div class="pedido-info">
@@ -369,14 +437,26 @@ async function acaoPedido(docId, acao) {
         p.status = "confirmado"; p.confirmadoEm = new Date().toISOString();
         await Dados.salvar("pedidos", docId, { status: p.status, confirmadoEm: p.confirmadoEm });
         avisar("Pedido aceito! O estoque já foi descontado.");
+    } else if (acao === "sinal") {
+        const e = { ...p.encomenda, sinalPago: true, sinalPagoEm: new Date().toISOString() };
+        p.encomenda = e;
+        await Dados.salvar("pedidos", docId, { encomenda: e });
+        await registrarMovimento({
+            tipo: "entrada", categoria: "Sinal de encomenda", valor: e.sinal, pagamento: "Pix",
+            descricao: `Sinal ${e.percentual}% · ${p.cliente} · encomenda ${p.codigo}`, pedido: p.codigo,
+        });
+        avisar(`Sinal de ${formatarMoeda(e.sinal)} registrado no caixa. A encomenda está garantida!`);
     } else if (acao === "entregar") {
         p.status = "entregue"; p.entregueEm = new Date().toISOString();
         await Dados.salvar("pedidos", docId, { status: p.status, entregueEm: p.entregueEm });
+        // Se o sinal já entrou no caixa, agora entra só o restante
+        const jaRecebido = p.encomenda?.sinalPago ? Number(p.encomenda.sinal) || 0 : 0;
+        const valor = Math.max(0, Math.round((p.total - jaRecebido) * 100) / 100);
         await registrarMovimento({
-            tipo: "entrada", categoria: "Pedido do site", valor: p.total, pagamento: (p.pagamento || "").split(" (")[0],
-            descricao: `${p.cliente} · pedido ${p.codigo}`, itens: p.itens, pedido: p.codigo,
+            tipo: "entrada", categoria: "Pedido do site", valor, pagamento: (p.pagamento || "").split(" (")[0],
+            descricao: `${p.cliente} · pedido ${p.codigo}${jaRecebido ? " (restante, sinal já recebido)" : ""}`, itens: p.itens, pedido: p.codigo,
         });
-        avisar(`Pronto! ${formatarMoeda(p.total)} entrou no caixa.`);
+        avisar(`Pronto! ${formatarMoeda(valor)} entrou no caixa.`);
     } else if (acao === "cancelar") {
         const ok = await confirmar("Cancelar este pedido?", `O pedido de ${p.cliente} vai para "Cancelados".`, "Sim, cancelar");
         if (!ok) return;
@@ -861,6 +941,13 @@ function renderAjustes() {
     $("aj-natal").checked = config.vitrineNatal !== false;
     $("aj-natal-titulo").value = config.natalTitulo || "";
     $("aj-natal-aviso").value = config.natalAviso || "";
+    $("aj-pix").value = config.chavePix || "";
+    $("aj-natal-de").value = config.natalDe || "2026-12-20";
+    $("aj-natal-ate").value = config.natalAte || "2026-12-25";
+    $("aj-sinal-natal").value = config.sinalNatal ?? 30;
+    $("aj-natal-retirada").checked = config.natalSomenteRetirada !== false;
+    $("aj-antecedencia").value = config.encomendaAntecedencia ?? 2;
+    $("aj-sinal-encomenda").value = config.sinalEncomenda ?? 50;
     $("aj-dias").innerHTML = NOMES_DIAS.map((n, i) => `<label><input type="checkbox" value="${i}" ${(config.retiradaDias || []).includes(i) ? "checked" : ""}><span>${n}</span></label>`).join("");
     fretesEdit = (config.fretes || []).map((f) => ({ ...f }));
     renderFretes();
@@ -905,6 +992,13 @@ async function salvarAjustes() {
         vitrineNatal: $("aj-natal").checked,
         natalTitulo: $("aj-natal-titulo").value.trim() || "Especiais de Natal",
         natalAviso: $("aj-natal-aviso").value.trim(),
+        chavePix: $("aj-pix").value.trim(),
+        natalDe: $("aj-natal-de").value || "2026-12-20",
+        natalAte: $("aj-natal-ate").value || "2026-12-25",
+        sinalNatal: Math.min(100, Math.max(0, Number($("aj-sinal-natal").value) || 0)),
+        natalSomenteRetirada: $("aj-natal-retirada").checked,
+        encomendaAntecedencia: Math.min(30, Math.max(0, Number($("aj-antecedencia").value) || 0)),
+        sinalEncomenda: Math.min(100, Math.max(0, Number($("aj-sinal-encomenda").value) || 0)),
         fretes: fretesEdit.filter((f) => f.bairro.trim()).map((f) => ({ bairro: f.bairro.trim(), valor: Number(f.valor) || 0 })),
     };
     await Dados.salvar("configuracoes", "geral", novo);

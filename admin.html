@@ -145,6 +145,7 @@
                 <div class="abas" id="abas-pedidos">
                     <button data-status="novo" class="ativo">Novos <b id="qtd-novo"></b></button>
                     <button data-status="confirmado">Fazendo <b id="qtd-confirmado"></b></button>
+                    <button data-status="encomendas"><i class="fa-regular fa-calendar"></i> Encomendas <b id="qtd-encomendas"></b></button>
                     <button data-status="entregue">Entregues</button>
                     <button data-status="cancelado">Cancelados</button>
                 </div>
@@ -354,6 +355,24 @@
                     <h2><i class="fa-solid fa-ticket"></i> Cupons de desconto</h2>
                     <div id="aj-cupons"></div>
                     <button class="btn btn-claro" id="aj-add-cupom"><i class="fa-solid fa-plus"></i> Criar cupom</button>
+                </div>
+
+                <div class="bloco">
+                    <h2><i class="fa-regular fa-calendar-check"></i> Encomendas e sinal</h2>
+                    <p class="grupo-ajuda">Vale para os produtos marcados como "Só sob encomenda". No site, a cliente escolhe o dia e o pedido chega para você como encomenda aguardando o sinal.</p>
+                    <div class="campo"><label for="aj-pix">Chave Pix para o sinal</label><input type="text" id="aj-pix" placeholder="Ex.: CPF, telefone ou e-mail"></div>
+                    <p class="grupo-titulo">🎄 Natal</p>
+                    <div class="linha-2">
+                        <div class="campo"><label for="aj-natal-de">Natal: de</label><input type="date" id="aj-natal-de"></div>
+                        <div class="campo"><label for="aj-natal-ate">até</label><input type="date" id="aj-natal-ate"></div>
+                    </div>
+                    <div class="campo"><label for="aj-sinal-natal">Sinal do Natal (%)</label><input type="number" id="aj-sinal-natal" min="0" max="100" inputmode="numeric"></div>
+                    <label class="interruptor"><input type="checkbox" id="aj-natal-retirada"><span class="trilha"></span><span><strong>Natal só com retirada</strong><small>Esconde a opção de entrega quando o pedido tem produtos de Natal.</small></span></label>
+                    <p class="grupo-titulo">📦 Outras datas</p>
+                    <div class="linha-2">
+                        <div class="campo"><label for="aj-antecedencia">Antecedência (dias)</label><input type="number" id="aj-antecedencia" min="0" max="30" inputmode="numeric"></div>
+                        <div class="campo"><label for="aj-sinal-encomenda">Sinal (%)</label><input type="number" id="aj-sinal-encomenda" min="0" max="100" inputmode="numeric"></div>
+                    </div>
                 </div>
 
                 <div class="bloco">

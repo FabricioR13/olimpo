@@ -489,3 +489,13 @@ img { display: block; max-width: 100%; }
 .btn-remover-linha { width: 40px; height: 44px; align-self: center; border-radius: 10px; border: 2px solid #f0cfc9; background: var(--branco); color: var(--vermelho); }
 .btn-add-linha { margin-top: .15rem; }
 @media (max-width: 480px) { .linhas-cabecalho, .linha-tamanho { grid-template-columns: 1fr 76px 40px; gap: .4rem; } .linha-editavel input { padding: .65rem .6rem; } }
+
+/* Encomendas nos pedidos */
+.pedido-encomenda { margin: 0 1rem .2rem; padding: .7rem .85rem; border-radius: 12px; font-size: .95rem; border: 2px solid #f0d6b0; background: #fdf3e6; }
+.pedido-encomenda.pago { border-color: #bfe0cc; background: var(--verde-claro); }
+.pedido-encomenda .enc-linha { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .3rem; }
+.pedido-encomenda .enc-linha span:first-child { color: var(--suave); min-width: 105px; }
+.etiqueta-sinal { margin-left: auto; font-size: .8rem; font-weight: 800; padding: .15rem .6rem; border-radius: 999px; background: #fff0e3; color: #a2470f; }
+.pedido-encomenda.pago .etiqueta-sinal { background: #fff; color: var(--verde); }
+#abas-pedidos button i { margin-right: .25rem; }
+.dia-encomenda span:first-child { text-transform: none; }
