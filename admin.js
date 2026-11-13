@@ -1225,17 +1225,113 @@ function ligarEventos() {
     // grava no mesmo navegador; no Firebase, confere a cada 30 segundos.
     window.addEventListener("storage", async (e) => {
         if (e.key !== CHAVE_DEMO) return;
-        const antes = pedidos.filter((p) => p.status === "novo").length;
         await carregarTudo();
-        if (pedidos.filter((p) => p.status === "novo").length > antes) avisar("🔔 Chegou um pedido novo pelo site!");
+        verificarPedidosNovos();
         atualizarTela();
     });
     if (!MODO_DEMO) setInterval(async () => {
-        const antes = pedidos.filter((p) => p.status === "novo").length;
-        pedidos = (await Dados.listar("pedidos")).sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
-        if (pedidos.filter((p) => p.status === "novo").length > antes) avisar("🔔 Chegou um pedido novo pelo site!");
-        atualizarTela();
-    }, 30000);
+        try {
+            pedidos = (await Dados.listar("pedidos")).sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+            verificarPedidosNovos();
+            atualizarTela();
+        } catch (e) { console.warn("Não consegui conferir os pedidos:", e); }
+    }, 15000);
+}
+
+// ─── ALERTA DE PEDIDO NOVO (som alto + tela cheia) ───────────────────────────
+// O som toca enquanto o painel estiver aberto (pode ficar em segundo plano no
+// computador). No celular/tablet, "Manter a tela acesa" evita que ele durma.
+const CHAVE_ALERTA = "olimpo_alerta_som";
+let alertaLigado = (() => { try { return localStorage.getItem(CHAVE_ALERTA) !== "0"; } catch { return true; } })();
+let audioCtx = null, somTimer = null, somParaEm = 0, wakeLock = null, tituloTimer = null;
+let pedidosVistos = null; // códigos dos pedidos novos que já apareceram
+
+function prepararAudio() {
+    try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+    } catch (e) { audioCtx = null; }
+    return audioCtx && audioCtx.state === "running";
+}
+// "Ding-dong" forte, 3 vezes
+function tocarCampainha() {
+    if (!prepararAudio()) return false;
+    const t0 = audioCtx.currentTime;
+    [[988, 0], [784, .28], [988, .7], [784, .98], [988, 1.4], [784, 1.68]].forEach(([freq, atraso]) => {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = "square"; o.frequency.value = freq;
+        g.gain.setValueAtTime(0.0001, t0 + atraso);
+        g.gain.exponentialRampToValueAtTime(0.9, t0 + atraso + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + atraso + 0.26);
+        o.connect(g).connect(audioCtx.destination);
+        o.start(t0 + atraso); o.stop(t0 + atraso + 0.28);
+    });
+    return true;
+}
+function pararSom() {
+    clearInterval(somTimer); somTimer = null;
+    clearInterval(tituloTimer); tituloTimer = null;
+    document.title = TITULO_PAINEL;
+    if (navigator.vibrate) navigator.vibrate(0);
+}
+const TITULO_PAINEL = document.title;
+function dispararAlerta(novos) {
+    $("alerta-lista").innerHTML = novos.slice(0, 4).map((p) => `
+        <div class="alerta-item"><b>${escaparHtml(p.cliente || "Cliente")}</b><span>${p.encomenda ? (p.encomenda.tipo === "natal" ? "🎄 Encomenda de Natal" : "📦 Encomenda") : "Pedido"} · ${formatarMoeda(p.total)}</span></div>`).join("")
+        + (novos.length > 4 ? `<p>e mais ${novos.length - 4}…</p>` : "");
+    $("alerta-titulo").textContent = novos.length > 1 ? `Chegaram ${novos.length} pedidos novos!` : "Chegou pedido novo!";
+    $("alerta-pedido").hidden = false;
+    if (!alertaLigado) return;
+    pararSom();
+    somParaEm = Date.now() + 3 * 60 * 1000; // toca por até 3 minutos
+    const tocar = () => {
+        if (Date.now() > somParaEm) return pararSom();
+        if (!tocarCampainha()) $("faixa-som").hidden = false;
+        if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
+    };
+    tocar();
+    somTimer = setInterval(tocar, 4000);
+    let pisca = false;
+    tituloTimer = setInterval(() => { pisca = !pisca; document.title = pisca ? "🔔 PEDIDO NOVO!" : TITULO_PAINEL; }, 1000);
+}
+function verificarPedidosNovos() {
+    const novos = pedidos.filter((p) => p.status === "novo");
+    if (pedidosVistos === null) { pedidosVistos = new Set(novos.map((p) => p.docId)); return; }
+    const chegaram = novos.filter((p) => !pedidosVistos.has(p.docId));
+    novos.forEach((p) => pedidosVistos.add(p.docId));
+    if (chegaram.length) dispararAlerta(chegaram);
+}
+function fecharAlerta() { pararSom(); $("alerta-pedido").hidden = true; }
+
+async function manterTelaAcesa() {
+    if (!alertaLigado || !("wakeLock" in navigator) || document.visibilityState !== "visible") return;
+    try { wakeLock = await navigator.wakeLock.request("screen"); } catch (e) { wakeLock = null; }
+}
+function atualizarBotaoAlerta() {
+    const b = $("btn-alerta");
+    b.classList.toggle("ligado", alertaLigado);
+    b.innerHTML = alertaLigado
+        ? `<i class="fa-solid fa-bell"></i><span>Som ligado</span>`
+        : `<i class="fa-solid fa-bell-slash"></i><span>Som desligado</span>`;
+    b.title = alertaLigado ? "Som de pedidos novos: ligado (toque para desligar)" : "Som de pedidos novos: desligado (toque para ligar)";
+}
+function ligarEventosAlerta() {
+    atualizarBotaoAlerta();
+    // Qualquer toque na tela libera o som (regra dos navegadores)
+    const liberar = () => { if (prepararAudio()) $("faixa-som").hidden = true; };
+    document.addEventListener("pointerdown", liberar, { passive: true });
+    document.addEventListener("keydown", liberar);
+    $("faixa-som").addEventListener("click", () => { prepararAudio(); tocarCampainha(); $("faixa-som").hidden = true; avisar("Som ligado! Quando chegar pedido, o painel toca assim."); manterTelaAcesa(); });
+    $("btn-alerta").addEventListener("click", () => {
+        alertaLigado = !alertaLigado;
+        try { localStorage.setItem(CHAVE_ALERTA, alertaLigado ? "1" : "0"); } catch { /* ignora */ }
+        atualizarBotaoAlerta();
+        if (alertaLigado) { prepararAudio(); tocarCampainha(); manterTelaAcesa(); avisar("Som de pedidos ligado. Deixe o painel aberto para ouvir."); }
+        else { pararSom(); if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } avisar("Som de pedidos desligado."); }
+    });
+    $("alerta-ver").addEventListener("click", () => { fecharAlerta(); statusPedidos = "novo"; irPara("pedidos"); });
+    $("alerta-silenciar").addEventListener("click", () => { pararSom(); $("alerta-pedido").hidden = true; });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") manterTelaAcesa(); });
 }
 
 // ─── LOGIN E INÍCIO ──────────────────────────────────────────────────────────
@@ -1246,6 +1342,9 @@ async function abrirApp() {
     try { await carregarTudo(); }
     catch (e) { console.error(e); avisar("Erro ao carregar os dados. Verifique a internet.", false); }
     try { await incluirNovidades(); } catch (e) { console.error("Novidades do cardápio:", e); }
+    verificarPedidosNovos(); // marca os pedidos que já estavam lá (só os que chegarem depois tocam)
+    if (alertaLigado && !prepararAudio()) $("faixa-som").hidden = false;
+    manterTelaAcesa();
     irPara("inicio");
 }
 
@@ -1259,6 +1358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     $("login-tf").href = `https://wa.me/${TF_SOLUTIONS_WHATSAPP}`;
     ligarEventos();
+    ligarEventosAlerta();
     // Botão "Voltar ao início" no topo de todas as telas (menos o Início)
     $$("section.pagina").forEach((s) => {
         if (s.id === "pg-inicio") return;

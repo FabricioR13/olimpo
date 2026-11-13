@@ -499,3 +499,16 @@ img { display: block; max-width: 100%; }
 .pedido-encomenda.pago .etiqueta-sinal { background: #fff; color: var(--verde); }
 #abas-pedidos button i { margin-right: .25rem; }
 .dia-encomenda span:first-child { text-transform: none; }
+
+/* Alerta de pedido novo */
+.topo-alerta.ligado { background: var(--verde); border-color: var(--verde); color: #fff; }
+.faixa-som { position: fixed; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 140; display: flex; align-items: center; gap: .6rem; max-width: calc(100% - 24px); padding: .9rem 1.2rem; border: none; border-radius: 999px; background: var(--vermelho); color: #fff; font-size: 1rem; font-weight: 700; box-shadow: 0 10px 28px rgba(0,0,0,.3); animation: pulsar 1.6s infinite; }
+.alerta-pedido { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 1rem; background: rgba(28, 21, 18, .82); }
+.alerta-caixa { width: min(440px, 100%); background: var(--branco); border-radius: 22px; padding: 1.6rem 1.3rem 1.3rem; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.4); display: flex; flex-direction: column; gap: .7rem; }
+.alerta-sino { width: 92px; height: 92px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-size: 2.6rem; background: linear-gradient(135deg, var(--ouro-claro), var(--ouro)); color: var(--cacau); animation: balancar 1s infinite; }
+.alerta-caixa h2 { font-family: var(--fonte-titulo); font-size: 1.6rem; color: var(--cacau); }
+.alerta-item { display: flex; justify-content: space-between; gap: .6rem; padding: .7rem .9rem; border-radius: 12px; background: var(--creme); font-size: 1.05rem; text-align: left; margin-bottom: .4rem; }
+.alerta-item span { color: var(--suave); }
+@keyframes balancar { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-14deg); } 75% { transform: rotate(14deg); } }
+@keyframes pulsar { 0%, 100% { box-shadow: 0 0 0 0 rgba(178, 58, 42, .5); } 50% { box-shadow: 0 0 0 12px rgba(178, 58, 42, 0); } }
+@media (max-width: 600px) { .topo-alerta span { display: none; } }

@@ -50,6 +50,7 @@
                 </div>
             </div>
             <div class="topo-acoes">
+                <button class="topo-btn topo-alerta" id="btn-alerta" title="Som de pedidos novos"><i class="fa-solid fa-bell-slash"></i><span>Som desligado</span></button>
                 <a href="index.html" target="_blank" class="topo-btn" title="Ver o site"><i class="fa-solid fa-store"></i><span>Ver site</span></a>
                 <button class="topo-btn" id="sair" title="Sair"><i class="fa-solid fa-right-from-bracket"></i><span>Sair</span></button>
             </div>
@@ -537,6 +538,20 @@
     </div>
 
     <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+    <!-- Faixa para ativar o som (o navegador só deixa tocar depois de um toque) -->
+    <button class="faixa-som" id="faixa-som" hidden><i class="fa-solid fa-volume-high"></i> Toque aqui para ligar o <b>som de pedidos novos</b></button>
+
+    <!-- Alerta de pedido novo: tela cheia + som alto repetindo até tocar em um botão -->
+    <div class="alerta-pedido" id="alerta-pedido" hidden role="alertdialog" aria-labelledby="alerta-titulo">
+        <div class="alerta-caixa">
+            <div class="alerta-sino"><i class="fa-solid fa-bell"></i></div>
+            <h2 id="alerta-titulo">Chegou pedido novo!</h2>
+            <div id="alerta-lista"></div>
+            <button class="btn btn-verde btn-grande" id="alerta-ver"><i class="fa-solid fa-list-check"></i> Ver os pedidos</button>
+            <button class="btn btn-claro" id="alerta-silenciar"><i class="fa-solid fa-volume-xmark"></i> Só parar o som</button>
+        </div>
+    </div>
     <div id="area-impressao" class="area-impressao"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
